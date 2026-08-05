@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>If This Is the World of Dreams — Full Flow Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant:ital@1&family=Kanit:wght@300;400&family=Sarabun:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --color-sky-deep:   #0B0F26;
+    --color-sky-mid:    #161C40;
+    --color-sky-horizon:#2A2F5C;
+    --color-star-core:  #F5F1E8;
+    --color-star-glow:  #C9D4FF;
+    --color-warm-core:  #F0B27A;
+    --color-warm-soft:  #F7D9B8;
+    --color-affirm:     #A8C9A1;
+    --color-decline:    #6B7A99;
+    --color-text-primary: #F5EFE6;
+    --color-text-muted:   #9AA3C4;
+
+    --font-display: 'Cormorant', serif;
+    --font-ui: 'Kanit', sans-serif;
+    --font-body: 'Sarabun', sans-serif;
+
+    --ease-drift: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin:0; padding:0; height:100%; width:100%;
+    background: radial-gradient(ellipse at 50% 30%, var(--color-sky-horizon) 0%, var(--color-sky-mid) 45%, var(--color-sky-deep) 100%);
+    overflow:hidden; font-family: var(--font-body); color: var(--color-text-primary);
+  }
+  #starCanvas, #dust, #earthLayer { position:absolute; top:0; left:0; width:100%; height:100%; }
+  #universe { position:absolute; top:0; left:0; width:100%; height:100%; transition: transform 2.4s var(--ease-drift); transform-origin:50% 50%; }
+  #universe.zoomOut { transform: scale(0.72); }
+
+  #stage {
+    position:relative; width:100%; height:100%;
+    display:flex; align-items:center; justify-content:center;
+    transform-origin: 50% 120%;
+    transition: transform 1.2s var(--ease-drift), opacity 1.2s var(--ease-drift);
+  }
+  #stage.rotating { transform: rotate(5deg); opacity:0; }
+
+  #content {
+    width:min(560px, 90vw);
+    display:flex; flex-direction:column; align-items:center; text-align:center; gap:22px;
+    opacity:1; transition: opacity 0.6s ease;
+  }
+  #content.fading { opacity:0; }
+
+  .eyebrow { font-family: var(--font-ui); font-weight:300; letter-spacing:0.12em; font-size:12px; color: var(--color-text-muted); min-height:1.4em; }
+  .tagline { font-family: var(--font-ui); font-weight:300; font-size:clamp(18px,3.2vw,26px); line-height:1.7; min-height:2.4em; }
+  .cursor { display:inline-block; width:1px; height:1em; background:var(--color-text-muted); margin-left:2px; animation: blink 1s steps(2) infinite; vertical-align:-0.1em; }
+  @keyframes blink { 50%{opacity:0;} }
+
+  .title { font-family: var(--font-display); font-style:italic; font-size:clamp(32px,6.4vw,52px); letter-spacing:0.04em; color: var(--color-warm-soft); text-shadow:0 0 24px rgba(240,178,122,0.35); opacity:0; transition:opacity 2s var(--ease-drift); }
+  .title.show { opacity:1; }
+
+  .pill-btn {
+    font-family: var(--font-ui); font-weight:300; font-size:14px; letter-spacing:0.06em;
+    color: var(--color-sky-deep); background: var(--color-warm-soft); border:none;
+    padding:13px 34px; border-radius:999px; cursor:pointer;
+    opacity:0; transform:translateY(6px);
+    transition: opacity 1.2s var(--ease-drift), transform 1.2s var(--ease-drift), filter 0.2s ease, box-shadow 0.2s ease;
+  }
+  .pill-btn.show { opacity:1; transform:translateY(0); }
+  .pill-btn:hover { filter:brightness(1.05); box-shadow:0 0 22px rgba(240,178,122,0.45); }
+
+  .choice-row { display:flex; gap:14px; opacity:0; transition:opacity 1s var(--ease-drift); }
+  .choice-row.show { opacity:1; }
+  .choice-btn {
+    font-family: var(--font-ui); font-weight:300; font-size:13px; letter-spacing:0.04em;
+    border:none; padding:11px 24px; border-radius:999px; cursor:pointer; color:var(--color-sky-deep);
+    transition: filter 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  }
+  .choice-btn.affirm { background: var(--color-affirm); }
+  .choice-btn.decline { background: var(--color-decline); color: var(--color-text-primary); }
+  .choice-btn:hover { filter:brightness(1.08); transform:scale(1.02); }
+  .choice-btn:disabled { opacity:0.4; cursor:default; transform:none; }
+
+  .char-wrap { width:150px; height:150px; opacity:0; transition:opacity 2s var(--ease-drift); }
+  .char-wrap.show { opacity:1; }
+
+  .reaction-line { font-family: var(--font-ui); font-weight:300; font-size:14px; color:var(--color-text-muted); min-height:1.4em; opacity:0; transition:opacity 1s ease; }
+  .reaction-line.show { opacity:1; }
+
+  input[type=date], input[type=time] {
+    font-family: var(--font-ui); font-size:14px; padding:10px 16px; border-radius:999px;
+    border:1px solid rgba(201,212,255,0.25); background:rgba(255,255,255,0.04); color:var(--color-text-primary);
+    outline:none; color-scheme: dark;
+  }
+  label.check { font-family: var(--font-ui); font-size:12px; color:var(--color-text-muted); display:flex; gap:8px; align-items:center; }
+
+  textarea {
+    width:100%; min-height:110px; border-radius:18px; border:1px solid rgba(201,212,255,0.25);
+    background:rgba(255,255,255,0.04); color:var(--color-text-primary); font-family:var(--font-body);
+    font-size:14px; padding:14px; resize:none; outline:none;
+  }
+  .privacy-note { font-family: var(--font-ui); font-weight:300; font-size:11px; color:var(--color-text-muted); opacity:0.75; line-height:1.6; }
+
+  .form-row { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+
+  .hint { position:absolute; bottom:18px; left:0; right:0; text-align:center; font-family:var(--font-ui); font-size:10px; letter-spacing:0.1em; color:var(--color-text-muted); opacity:0.45; }
+
+  .box-icon, .earth-icon { position:absolute; opacity:0; transition: opacity 1.6s var(--ease-drift), transform 2.2s var(--ease-drift); }
+
+  /* ---------- Decorative celestial layer ---------- */
+  .deco-cloud { position:absolute; animation: cloudDrift 42s ease-in-out infinite alternate; }
+  @keyframes cloudDrift { from{ transform:translate(0,0) scale(1);} to{ transform:translate(22px,-16px) scale(1.03);} }
+
+  .deco-moon { position:absolute; animation: moonFloat 15s ease-in-out infinite; }
+  @keyframes moonFloat { 0%,100%{ transform:translateY(0);} 50%{ transform:translateY(-9px);} }
+
+  .sparkle { position:absolute; animation: sparkleTwinkle 3.4s ease-in-out infinite; transform-origin:center; }
+  @keyframes sparkleTwinkle { 0%,100%{ opacity:0.12; transform:scale(0.7) rotate(0deg);} 50%{ opacity:1; transform:scale(1.2) rotate(8deg);} }
+
+  .zodiac-ring { position:absolute; top:50%; left:50%; width:680px; height:680px; margin:-340px 0 0 -340px;
+    animation: ringSpin 260s linear infinite; opacity:0.22; pointer-events:none; }
+  .zodiac-ring span { position:absolute; top:50%; left:50%; font-family:var(--font-display); font-size:22px; color:var(--color-warm-soft); }
+  @keyframes ringSpin { from{ transform:rotate(0deg);} to{ transform:rotate(360deg);} }
+
+  @keyframes titleTwinkle {
+    0%,100% { text-shadow: 0 0 24px rgba(240,178,122,0.35), 0 0 6px rgba(247,217,184,0.4); }
+    50%     { text-shadow: 0 0 42px rgba(240,178,122,0.7), 0 0 16px rgba(247,217,184,0.85); }
+  }
+  .title.show { animation: titleTwinkle 3.6s ease-in-out infinite; }
+
+  /* ---------- Character idle life ---------- */
+  @keyframes charIdle { 0%,100%{ transform:translateY(0) scale(1);} 50%{ transform:translateY(-5px) scale(1.015);} }
+  .char-wrap.show { animation: charIdle 3.8s ease-in-out infinite; }
+  .eyelid { transform-box: fill-box; transform-origin:center; animation: blinkEye 4.4s ease-in-out infinite; }
+  @keyframes blinkEye { 0%,90%,100%{ transform:scaleY(0);} 93%,97%{ transform:scaleY(1);} }
+
+  /* ---------- Decorative frame (form) ---------- */
+  .deco-frame {
+    position:relative; border:1px solid rgba(240,201,138,0.4); border-radius:28px;
+    padding:34px 28px; background:linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0.005));
+    box-shadow:0 0 40px rgba(240,178,122,0.1), inset 0 0 30px rgba(240,178,122,0.05);
+    display:flex; flex-direction:column; align-items:center; gap:22px;
+  }
+  .frame-note { font-family:var(--font-ui); font-weight:300; font-size:11px; color:var(--color-warm-soft); opacity:0.85; }
+</style>
+</head>
+<body>
+
+<div id="universe">
+  <canvas id="starCanvas"></canvas>
+  <div id="dust"></div>
+
+  <!-- Decorative clouds (gold-on-navy, ตามมู้ดบอร์ด) -->
+  <svg class="deco-cloud" style="top:-7%; left:-9%; width:360px; height:280px; opacity:0.55;" viewBox="0 0 340 260">
+    <path d="M20,120 C10,80 40,40 90,35 C110,10 160,5 190,25 C230,10 280,30 290,70 C320,80 320,130 290,150 C300,190 260,210 220,200 C190,225 130,225 100,200 C60,210 20,180 25,145 C5,150 5,125 20,120 Z" fill="#161C40"/>
+    <circle cx="70" cy="70" r="2" fill="#F0D9A8"/><circle cx="130" cy="45" r="1.4" fill="#F0D9A8"/>
+    <circle cx="230" cy="60" r="1.6" fill="#F0D9A8"/><circle cx="180" cy="150" r="1.4" fill="#F0D9A8"/>
+    <g opacity="0.9"><circle cx="245" cy="95" r="15" fill="#E9C98A"/><circle cx="252" cy="90" r="15" fill="#161C40"/></g>
+  </svg>
+
+  <svg class="deco-cloud" style="bottom:-8%; right:-9%; width:300px; height:230px; opacity:0.45; animation-delay:-6s;" viewBox="0 0 340 260">
+    <path d="M20,120 C10,80 40,40 90,35 C110,10 160,5 190,25 C230,10 280,30 290,70 C320,80 320,130 290,150 C300,190 260,210 220,200 C190,225 130,225 100,200 C60,210 20,180 25,145 C5,150 5,125 20,120 Z" fill="#161C40"/>
+    <circle cx="90" cy="90" r="1.6" fill="#F0D9A8"/><circle cx="200" cy="70" r="2" fill="#F0D9A8"/>
+    <circle cx="150" cy="170" r="1.4" fill="#F0D9A8"/>
+  </svg>
+
+  <!-- Decorative moon, top right -->
+  <svg class="deco-moon" style="top:9%; right:11%; width:52px; height:52px;" viewBox="0 0 52 52">
+    <circle cx="26" cy="26" r="19" fill="#E9C98A"/><circle cx="33" cy="20" r="19" fill="#0B0F26"/>
+  </svg>
+
+  <!-- Twinkling sparkles, staggered so they never sync -->
+  <svg class="sparkle" style="top:16%; left:20%; width:16px; animation-delay:-0.4s;" viewBox="0 0 100 100"><path d="M50 0 L61 39 L100 50 L61 61 L50 100 L39 61 L0 50 L39 39 Z" fill="#F0D9A8"/></svg>
+  <svg class="sparkle" style="top:70%; left:14%; width:11px; animation-delay:-1.8s;" viewBox="0 0 100 100"><path d="M50 0 L61 39 L100 50 L61 61 L50 100 L39 61 L0 50 L39 39 Z" fill="#C9D4FF"/></svg>
+  <svg class="sparkle" style="top:24%; right:16%; width:13px; animation-delay:-2.6s;" viewBox="0 0 100 100"><path d="M50 0 L61 39 L100 50 L61 61 L50 100 L39 61 L0 50 L39 39 Z" fill="#F0D9A8"/></svg>
+  <svg class="sparkle" style="bottom:14%; right:24%; width:15px; animation-delay:-1.1s;" viewBox="0 0 100 100"><path d="M50 0 L61 39 L100 50 L61 61 L50 100 L39 61 L0 50 L39 39 Z" fill="#F0D9A8"/></svg>
+
+  <!-- Faint zodiac constellation halo -->
+  <div class="zodiac-ring" id="zodiacRing"></div>
+</div>
+
+<div id="stage">
+  <div id="content"></div>
+</div>
+
+<svg id="box" class="box-icon" width="46" height="46" viewBox="0 0 46 46" style="top:58%; left:50%; transform:translate(-50%,-50%);">
+  <rect x="4" y="16" width="38" height="26" rx="4" fill="#D9B98A"/>
+  <rect x="4" y="16" width="38" height="8" rx="4" fill="#F0B27A"/>
+  <rect x="20" y="10" width="6" height="14" fill="#F0B27A"/>
+</svg>
+
+<svg id="earth" class="earth-icon" width="26" height="26" viewBox="0 0 26 26" style="bottom:6%; left:50%; transform:translate(-50%,0);">
+  <circle cx="13" cy="13" r="12" fill="#3B5C7E"/>
+  <circle cx="9" cy="10" r="3" fill="#5C8A5C"/>
+  <circle cx="17" cy="16" r="2.4" fill="#5C8A5C"/>
+</svg>
+
+<div class="hint">If This Is the World of Dreams — Full Flow Demo</div>
+
+<script>
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ============ Zodiac halo ring ============ */
+const ZODIAC_GLYPHS = ['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'];
+const ring = document.getElementById('zodiacRing');
+ZODIAC_GLYPHS.forEach((g,i)=>{
+  const span = document.createElement('span');
+  span.textContent = g;
+  const angle = (360/ZODIAC_GLYPHS.length) * i;
+  span.style.transform = `rotate(${angle}deg) translate(340px) rotate(${-angle}deg)`;
+  ring.appendChild(span);
+});
+
+/* ============ Breathing stars ============ */
+const canvas = document.getElementById('starCanvas');
+const ctx = canvas.getContext('2d');
+function resize(){ canvas.width = innerWidth; canvas.height = innerHeight; }
+resize(); addEventListener('resize', resize);
+const STAR_COUNT = 150;
+const stars = Array.from({length: STAR_COUNT}, () => ({
+  x: Math.random()*innerWidth, y: Math.random()*innerHeight,
+  r: Math.random()*1.4+0.4, phase: Math.random()*Math.PI*2, speed: 0.4+Math.random()*0.6
+}));
+let t=0;
+function drawStars(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  t += reduceMotion ? 0.002 : 0.01;
+  for (const s of stars){
+    const b = reduceMotion ? 0.8 : 0.55+0.45*Math.sin(t*s.speed+s.phase);
+    ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+    ctx.fillStyle = `rgba(245,241,232,${0.15+b*0.55})`; ctx.fill();
+    if (s.r>1.1){ ctx.beginPath(); ctx.arc(s.x,s.y,s.r*3.2,0,Math.PI*2); ctx.fillStyle=`rgba(201,212,255,${0.03+b*0.05})`; ctx.fill(); }
+  }
+  requestAnimationFrame(drawStars);
+}
+drawStars();
+
+/* ============ Drifting dust ============ */
+const dustLayer = document.getElementById('dust');
+const dustDots = [];
+for (let i=0;i<10;i++){
+  const d=document.createElement('div'); const size=60+Math.random()*90;
+  Object.assign(d.style,{position:'absolute', width:size+'px', height:size+'px', borderRadius:'50%',
+    background:'radial-gradient(circle, rgba(201,212,255,0.05), transparent 70%)',
+    left:Math.random()*100+'%', top:Math.random()*100+'%', filter:'blur(2px)'});
+  dustLayer.appendChild(d);
+  dustDots.push({el:d, vx:(Math.random()-0.5)*0.015, vy:(Math.random()-0.5)*0.015, x:parseFloat(d.style.left), y:parseFloat(d.style.top)});
+}
+function driftDust(){
+  if (!reduceMotion) for (const dd of dustDots){
+    dd.x+=dd.vx; dd.y+=dd.vy;
+    if(dd.x<-10)dd.x=110; if(dd.x>110)dd.x=-10; if(dd.y<-10)dd.y=110; if(dd.y>110)dd.y=-10;
+    dd.el.style.left=dd.x+'%'; dd.el.style.top=dd.y+'%';
+  }
+  requestAnimationFrame(driftDust);
+}
+driftDust();
+
+/* ============ Typewriter ============ */
+function typewrite(el, text, charDelay, linePause, onDone){
+  if (reduceMotion){ el.textContent = text; onDone && onDone(); return; }
+  let i=0;
+  function step(){
+    if (i>=text.length){ onDone && onDone(); return; }
+    el.textContent += text[i];
+    const brk = text[i]==='\n';
+    i++;
+    setTimeout(step, brk?linePause:charDelay);
+  }
+  step();
+}
+
+/* ============ Data ============ */
+const ZODIAC = [
+  {name:'เมษ', start:[4,13], end:[5,13], catTitle:'แมวหน่วยรบผู้กล้าหาญ', trait:'พลังงานล้นเหลือ รักอิสระ ลุยไว ใจร้อน', like:'การแข่งขัน การล่า และของเล่นที่เคลื่อนไหวเร็ว', dislike:'การรอคอย และการโดนบังคับ', strength:'กล้าหาญ มีความเป็นผู้นำสูง ฟื้นตัวจากความล้มเหลวไว', weakness:'เอาแต่ใจ มุทะลุ เบื่อง่ายมาก', item:'เบ็ดตกแมวขนนกป่า'},
+  {name:'พฤษภ', start:[5,14], end:[6,14], catTitle:'แมวคุณชายสายคาเฟ่', trait:'นิ่งสงบ มั่นคง รักความสะดวกสบาย โลกส่วนตัวสูง', like:'อาหารอร่อย ที่นอนนุ่ม ๆ และดนตรีเบา ๆ', dislike:'การเปลี่ยนแปลงกะทันหัน และการโดนเร่งรีบ', strength:'ความอดทนเป็นเลิศ มีความสม่ำเสมอ ไว้ใจได้ที่สุด', weakness:'ดื้อเงียบ ขี้หวงของ ปรับตัวกับสิ่งใหม่ช้า', item:'ที่นอนเบาะขนนุ่มเกรดพรีเมียม'},
+  {name:'เมถุน', start:[6,15], end:[7,15], catTitle:'แมวไฮเปอร์สองร่าง', trait:'ฉลาด ขี้สงสัย ช่างพูดช่างคุย มีสองบุคลิกในตัวเดียว', like:'การเรียนรู้สิ่งใหม่ การเข้าสังคม และปริศนาท้าทาย', dislike:'ความจำเจ และความเงียบเหงา', strength:'สมองไว แก้ไขปัญหาเฉพาะหน้าเก่ง มนุษยสัมพันธ์ดีเยี่ยม', weakness:'โลเล สมาธิสั้น จับจดทำอะไรไม่ค่อยสุด', item:'อุโมงค์ผ้าซ่อนหาหลายทางแยก'},
+  {name:'กรกฎ', start:[7,16], end:[8,16], catTitle:'แมวติดบ้านผู้อ่อนโยน', trait:'เซนซิทีฟ รักครอบครัว ขี้อ้อน ปกป้องคนที่รัก', like:'การอยู่บ้าน ความรู้สึกปลอดภัย และการโดนกอด', dislike:'ความก้าวร้าว และสถานที่เสียงดัง', strength:'สัญชาตญาณแม่นยำ เห็นอกเห็นใจผู้อื่นสูง ดูแลคนรอบข้างเก่ง', weakness:'อารมณ์แปรปรวนง่าย ขี้ระแวง ชอบจมปลักกับอดีต', item:'กล่องกระดาษเปล่า'},
+  {name:'สิงห์', start:[8,17], end:[9,16], catTitle:'แมวซุปตาร์ตัวมารดา', trait:'ใจกว้าง หรูหรา ชอบความโดดเด่น ศักดิ์ศรีค้ำคอ', like:'คำชมเชย การเป็นศูนย์กลางความสนใจ และแสงไฟ', dislike:'การโดนเมินเฉย และการถูกหักหน้า', strength:'มีออร่าดึงดูด มีความมั่นใจสูง ใจสปอร์ตและซื่อสัตย์', weakness:'หลงตัวเองง่าย ขี้อวด อ่อนไหวต่อคำวิจารณ์', item:'คอนโดแมวทรงสูง (มีกระจกสะท้อน)'},
+  {name:'กันย์', start:[9,17], end:[10,16], catTitle:'แมวเจ้าระเบียบผู้สมบูรณ์แบบ', trait:'ละเอียดลออ รักสะอาด มีเหตุผล ช่างสังเกต', like:'ความสะอาด ข้อมูลที่ชัดเจน และการวางแผน', dislike:'ความสกปรก และความไร้ระเบียบ', strength:'ทำงานเนี้ยบไร้ที่ติ วิเคราะห์เก่ง พึ่งพาได้ในยามวิกฤต', weakness:'ขี้บ่น จู้จี้จุกจิกเกินไป ชอบคิดมากจนเครียด', item:'หวีแปรงขนสแตนเลส'},
+  {name:'ตุลย์', start:[10,17], end:[11,15], catTitle:'แมวทูตสันถวไมตรี', trait:'รักสันติ ชอบความยุติธรรม มีเสน่ห์ รักสวยรักงาม', like:'ศิลปะ ความสวยงาม และความสัมพันธ์ที่ราบรื่น', dislike:'การทะเลาะเบาะแว้ง และการต้องเลือกข้าง', strength:'ประนีประนอมเก่ง รสนิยมดีเลิศ เข้ากับคนง่ายมาก', weakness:'ปฏิเสธคนไม่เป็น ตัดสินใจยาก ติดหรู', item:'ปลอกคอติดกระดิ่งสุดหรู'},
+  {name:'พิจิก', start:[11,16], end:[12,15], catTitle:'แมวลึกลับน่าค้นหา', trait:'จริงจัง ลึกลับ มีโลกส่วนตัวสูงมาก รักแรงเกลียดแรง', like:'ความลับ ความสัมพันธ์ที่ลึกซึ้ง และการสืบสวน', dislike:'การโดนโกหก และการโดนล้ำเส้น', strength:'โฟกัสแรงกล้า จิตวิญญาณแข็งแกร่ง มองคนทะลุปรุโปร่ง', weakness:'เจ้าคิดเจ้าแค้น ขี้หึงขี้หวงขั้นสุด เข้าถึงยากเกินไป', item:'เลเซอร์พอยเตอร์'},
+  {name:'ธนู', start:[12,16], end:[1,14], catTitle:'แมวนักท่องโลกกว้าง', trait:'มองโลกในแง่ดี รักอิสระเหนือสิ่งอื่นใด ตรงไปตรงมา', like:'การเดินทาง วัฒนธรรมใหม่ ๆ และความตลกขบขัน', dislike:'กฎระเบียบที่เข้มงวด และการโดนผูกมัด', strength:'พลังบวกสูง เรียนรู้ไว ซื่อสัตย์และจริงใจ', weakness:'ขวานผ่าซาก ซุ่มซ่าม รักอิสระจนดูไม่ผูกพัน', item:'เปลญวนติดกระจกหน้าต่าง'},
+  {name:'มังกร', start:[1,15], end:[2,12], catTitle:'แมวประธานบริษัท', trait:'ทะเยอทะยาน จริงจังกับชีวิต มีวินัย อดทนสูง', like:'ความสำเร็จ หน้าที่การงาน และความมั่นคงทางการเงิน', dislike:'ความไร้สาระ และการทำลายแผนงาน', strength:'มีความรับผิดชอบสูงมาก บริหารจัดการเก่ง อดทนต่ออุปสรรคได้ดีที่สุด', weakness:'บ้างานจนละเลยความรู้สึก บงการคนอื่น แสดงออกความรู้สึกไม่เก่ง', item:'ของเล่นสอดไส้ขนม (ฝึกสมอง)'},
+  {name:'กุมภ์', start:[2,13], end:[3,14], catTitle:'แมวเอเลี่ยนผู้นำเทรนด์', trait:'อินดี้ ล้ำยุค รักพวกพ้อง มีอุดมการณ์สูง', like:'เทคโนโลยี ความคิดแปลกใหม่ และความเป็นเอกลักษณ์', dislike:'การทำตามกระแสแบบไร้เหตุผล และการโดนตีกรอบ', strength:'ความคิดสร้างสรรค์ฉีกแนว มีวิสัยทัศน์กว้างไกล ใจกว้างยอมรับความต่าง', weakness:'เดาใจยาก เย็นชาในบางครั้ง ดื้อรั้นแบบเงียบ ๆ', item:'น้ำพุแมวอัตโนมัติ'},
+  {name:'มีน', start:[3,15], end:[4,12], catTitle:'แมวศิลปินผู้เพ้อฝัน', trait:'ช่างจินตนาการ อ่อนโยน ขี้สงสาร มีสัมผัสพิเศษ', like:'ศิลปะ เสียงเพลง และการช่วยเหลือคนอื่น', dislike:'ความจริงอันโหดร้าย และการโดนกดดัน', strength:'จินตนาการล้ำเลิศ ปรับตัวเข้ากับสภาพแวดล้อมเก่ง จิตใจดีงาม', weakness:'ชอบหนีความจริง หูเบาเชื่อคนง่าย เซนซิทีฟจนเก็บมาคิดทุกเรื่อง', item:'ตุ๊กตาสอดไส้แคทนิป'}
+];
+
+function getZodiac(month, day){
+  for (const z of ZODIAC){
+    const [sm,sd]=z.start, [em,ed]=z.end;
+    if (sm <= em){
+      if ((month>sm || (month===sm && day>=sd)) && (month<em || (month===em && day<=ed))) return z;
+    } else {
+      if ((month===sm && day>=sd) || (month>sm) || (month<em) || (month===em && day<=ed)) return z;
+    }
+  }
+  return ZODIAC[0];
+}
+
+/* ============ Character SVG ============ */
+function charSVG(){
+  return `<svg width="150" height="150" viewBox="0 0 180 180">
+    <defs><radialGradient id="glowGrad" cx="50%" cy="45%" r="60%">
+      <stop offset="0%" stop-color="#F7D9B8"/><stop offset="55%" stop-color="#F0B27A"/>
+      <stop offset="100%" stop-color="#0B0F26" stop-opacity="0"/></radialGradient></defs>
+    <circle cx="90" cy="90" r="70" fill="url(#glowGrad)" opacity="0.9"/>
+    <circle cx="90" cy="95" r="38" fill="#F7D9B8"/>
+    <circle cx="76" cy="92" r="3.2" fill="#2A2F5C"/><circle cx="104" cy="92" r="3.2" fill="#2A2F5C"/>
+    <ellipse class="eyelid" cx="76" cy="92" rx="4" ry="4" fill="#F7D9B8"/>
+    <ellipse class="eyelid" cx="104" cy="92" rx="4" ry="4" fill="#F7D9B8"/>
+    <path d="M 78 106 Q 90 114 102 106" stroke="#2A2F5C" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+    <circle cx="58" cy="60" r="1.6" fill="#F5F1E8"/><circle cx="126" cy="70" r="1.4" fill="#F5F1E8"/><circle cx="118" cy="130" r="1.6" fill="#F5F1E8"/>
+  </svg>`;
+}
+
+/* ============ State machine helpers ============ */
+const content = document.getElementById('content');
+const stage = document.getElementById('stage');
+let profile = {};
+
+function swap(html, after){
+  content.classList.add('fading');
+  setTimeout(()=>{
+    content.innerHTML = html;
+    content.classList.remove('fading');
+    after && after();
+  }, 500);
+}
+function rotateTo(html, after){
+  stage.classList.add('rotating');
+  setTimeout(()=>{
+    content.innerHTML = html;
+    stage.classList.remove('rotating');
+    after && after();
+  }, 1200);
+}
+const REACTIONS = {
+  yes: ['ดีใจด้วย เจอตัวเองอีกมุมแล้ว','ตัวละครนี้เข้ากับคุณจริง ๆ','จักรวาลเห็นคุณตรงกับที่คุณเห็นตัวเอง'],
+  no: ['ไม่เป็นไร ดวงคือแนวโน้ม ไม่ใช่คำตัดสิน','บางทีตัวคุณจริง ๆ ซับซ้อนกว่าตัวเลขในดวงดาว','เก็บสิ่งนี้ไว้ก่อน แล้วไปดูข้ออื่นต่อ']
+};
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+/* ============ Step 1: Opening ============ */
+function stepOpening(){
+  content.innerHTML = `
+    <div class="tagline"><span id="taglineText"></span><span class="cursor"></span></div>
+    <div class="title" id="gameTitle">If This Is the World of Dreams</div>
+    <button class="pill-btn" id="startBtn">เริ่มสร้างตัวละคร</button>`;
+  const taglineText = document.getElementById('taglineText');
+  const gameTitle = document.getElementById('gameTitle');
+  const startBtn = document.getElementById('startBtn');
+  setTimeout(()=>{
+    typewrite(taglineText, 'ถ้าชีวิตนี้เป็นเกม...\nคุณจะรู้จักตัวละครของตัวเองดีแค่ไหน?', 30, 600, ()=>{
+      setTimeout(()=>{ gameTitle.classList.add('show'); setTimeout(()=>startBtn.classList.add('show'),900); },400);
+    });
+  },500);
+  startBtn.onclick = ()=> rotateTo(formHTML(), wireForm);
+}
+
+/* ============ Step 2: Birth form ============ */
+function formHTML(){
+  return `
+    <div class="deco-frame">
+      <svg class="sparkle" style="top:-14px; left:-14px; width:20px; animation-delay:-2s;" viewBox="0 0 100 100"><path d="M50 0 L61 39 L100 50 L61 61 L50 100 L39 61 L0 50 L39 39 Z" fill="#E9C98A"/></svg>
+      <svg class="sparkle" style="bottom:-14px; right:-14px; width:16px; animation-delay:-0.8s;" viewBox="0 0 100 100"><path d="M50 0 L61 39 L100 50 L61 61 L50 100 L39 61 L0 50 L39 39 Z" fill="#E9C98A"/></svg>
+      <div class="tagline">ทุกตัวละครเริ่มต้นจากจุดเดียวกัน<br>วันที่คุณถือกำเนิด</div>
+      <div class="form-row">
+        <input type="date" id="birthDate">
+        <input type="time" id="birthTime">
+      </div>
+      <div class="frame-note">💡 หมายเหตุ: กรุณาใส่ปีเกิดเป็น พ.ศ. (พุทธศักราช) นะคะ</div>
+      <label class="check"><input type="checkbox" id="noTime"> ฉันไม่ทราบเวลาเกิด — ไม่เป็นไร ตัวละครยังสร้างได้ตามปกติ</label>
+      <button class="pill-btn show" id="createBtn">สร้างตัวละคร</button>
+    </div>`;
+}
+function wireForm(){
+  const noTime = document.getElementById('noTime');
+  const timeInput = document.getElementById('birthTime');
+  noTime.onchange = ()=>{ timeInput.disabled = noTime.checked; timeInput.value=''; };
+  document.getElementById('createBtn').onclick = ()=>{
+    const dateVal = document.getElementById('birthDate').value;
+    const timeVal = timeInput.value;
+    let d = new Date();
+    if (dateVal){ const [y,m,day]=dateVal.split('-').map(Number); d = new Date(y,m-1,day); }
+    const month = d.getMonth()+1, day = d.getDate();
+    const zodiac = getZodiac(month, day);
+    const hasTime = !noTime.checked && !!timeVal;
+    profile = { zodiac, hasTime };
+    swap(loadingHTML(), ()=>runLoading());
+  };
+}
+
+/* ============ Step 3: Loading + reveal ============ */
+function loadingHTML(){
+  return `<div class="loading-line" id="loadingLine" style="font-family:var(--font-ui);font-weight:300;font-size:15px;color:var(--color-text-muted);min-height:1.6em;"></div>
+    <div class="char-wrap" id="charWrap">${charSVG()}</div>
+    <div class="reaction-line" id="zLine"></div>`;
+}
+function runLoading(){
+  const loadingLine = document.getElementById('loadingLine');
+  const charWrap = document.getElementById('charWrap');
+  const zLine = document.getElementById('zLine');
+  const lines = ['ดวงดาวกำลังเรียงตัว...','กำลังมองหากลุ่มดาวของคุณ...'];
+  let idx=0;
+  function next(){
+    loadingLine.textContent='';
+    typewrite(loadingLine, lines[idx], 30, 500, ()=>{
+      idx++;
+      if (idx<lines.length) setTimeout(next,900);
+      else setTimeout(()=>{
+        charWrap.classList.add('show');
+        setTimeout(()=>{
+          zLine.innerHTML = `${profile.zodiac.name} · ${profile.zodiac.catTitle}` +
+            (profile.hasTime ? `<br><span style="opacity:0.85;">✨ ไอเทมคู่ใจลับที่ปลุกพลังแท้จริง: ${profile.zodiac.item}</span>` : '');
+          zLine.classList.add('show');
+          setTimeout(()=> swap(careerHTML(), wireCareer), 1600);
+        },1800);
+      },700);
+    });
+  }
+  next();
+}
+
+/* ============ Step 4: Career choice ============ */
+function careerHTML(){
+  return `
+    <div class="tagline">จากดวงของคุณ ตัวละครนี้คือ...</div>
+    <div class="title show" style="font-size:clamp(22px,3.8vw,30px);">${profile.zodiac.catTitle}</div>
+    <div class="reaction-line show">${profile.zodiac.trait}</div>
+    <div class="reaction-line show">รู้สึกว่าใช่ตัวเองไหม?</div>
+    <div class="choice-row show">
+      <button class="choice-btn affirm" data-v="yes">ใกล้เคียงกับฉัน</button>
+      <button class="choice-btn decline" data-v="no">ยังไม่ใช่ฉัน</button>
+    </div>
+    <div class="reaction-line" id="reactLine"></div>`;
+}
+function wireCareer(){
+  bindChoice(()=> swap(happyHTML(), wireHappy));
+}
+function bindChoice(after){
+  const btns = document.querySelectorAll('.choice-btn');
+  btns.forEach(b=> b.onclick = ()=>{
+    btns.forEach(x=>x.disabled=true);
+    const line = document.getElementById('reactLine');
+    line.textContent = pick(REACTIONS[b.dataset.v]);
+    line.classList.add('show');
+    setTimeout(after, 1900);
+  });
+}
+
+/* ============ Step 5: Happy ============ */
+function happyHTML(){
+  return `
+    <div class="tagline">ลองดูสิ ว่านี่คือสิ่งที่ทำให้คุณมีความสุขไหม?</div>
+    <div class="title show" style="font-size:clamp(17px,3vw,22px);">${profile.zodiac.like}</div>
+    <div class="choice-row show">
+      <button class="choice-btn affirm" data-v="yes">ใช่เลย</button>
+      <button class="choice-btn decline" data-v="no">ไม่ค่อยใช่</button>
+    </div>
+    <div class="reaction-line" id="reactLine"></div>`;
+}
+function wireHappy(){ bindChoice(()=> swap(sadHTML(), wireSad)); }
+
+/* ============ Step 6: Sad ============ */
+function sadHTML(){
+  return `
+    <div class="tagline">แล้วสิ่งนี้ล่ะ... เคยทำให้คุณหงุดหงิดหรือหมดพลังไหม?</div>
+    <div class="title show" style="font-size:clamp(17px,3vw,22px);">${profile.zodiac.dislike}</div>
+    <div class="reaction-line show" style="opacity:0.7;">ข้อควรระวังของคุณ: ${profile.zodiac.weakness}</div>
+    <div class="choice-row show">
+      <button class="choice-btn affirm" data-v="yes">ใช่ ตรงจุด</button>
+      <button class="choice-btn decline" data-v="no">ไม่เชิง</button>
+    </div>
+    <div class="reaction-line" id="reactLine"></div>`;
+}
+function wireSad(){ bindChoice(()=> swap(goalHTML(), wireGoal)); }
+
+/* ============ Step 7: Life goal ============ */
+function goalHTML(){
+  return `
+    <div class="tagline">ตอนนี้คุณรู้จักตัวละครตัวนี้แล้ว...<br>เป้าหมายสูงสุดในเกมชีวิตเวอร์ชันนี้ของคุณคืออะไร?</div>
+    <textarea id="goalText" placeholder="พิมพ์อะไรก็ได้..."></textarea>
+    <div class="privacy-note">🔒 พื้นที่ปลอดภัย: ข้อความนี้อยู่แค่บนหน้าจอของคุณ ไม่ถูกบันทึกไว้ที่ไหน และจะหายไปทันทีที่ปิดหน้านี้</div>
+    <button class="pill-btn show" id="releaseBtn">ปล่อยสู่จักรวาล</button>`;
+}
+function wireGoal(){
+  document.getElementById('releaseBtn').onclick = ()=> rotateTo(endingHTML(), runEnding);
+}
+
+/* ============ Step 8: Ending ============ */
+function endingHTML(){
+  return `<div class="char-wrap show" id="endChar">${charSVG()}</div>
+    <div class="reaction-line" id="endLine1" style="font-size:13px;"></div>
+    <div class="tagline" id="endLine2" style="opacity:0;transition:opacity 2s var(--ease-drift);"></div>`;
+}
+function runEnding(){
+  document.getElementById('endLine1').classList.add('show');
+  document.getElementById('endLine1').textContent = 'ตัวละครเก็บม้วนกระดาษลงกล่องสมบัติ...';
+  setTimeout(()=>{
+    document.getElementById('box').style.opacity='1';
+    setTimeout(()=>{
+      document.getElementById('universe').classList.add('zoomOut');
+      document.getElementById('endChar').style.opacity='0.5';
+      setTimeout(()=>{
+        document.getElementById('earth').style.opacity='1';
+        document.getElementById('box').style.transform='translate(-50%, 32vh) scale(0.3)';
+        document.getElementById('box').style.opacity='0';
+        setTimeout(()=>{
+          const l2 = document.getElementById('endLine2');
+          l2.innerHTML = 'โลกแห่งความฝัน จะอยู่ที่เดิมเสมอ<br>แต่ความฝันของคุณ...<br>ไม่ได้อยู่ที่นี่<br>มันกำลังรอให้คุณไปค้นพบ';
+          l2.style.opacity='1';
+          setTimeout(()=>{
+            const btn = document.createElement('button');
+            btn.className='pill-btn'; btn.textContent='ออกเดินทาง';
+            content.appendChild(btn);
+            requestAnimationFrame(()=> btn.classList.add('show'));
+            btn.onclick = ()=> location.reload();
+          }, 2600);
+        }, 2400);
+      }, 1600);
+    }, 1800);
+  }, 1600);
+}
+
+/* ============ Boot ============ */
+stepOpening();
+</script>
+</body>
+</html>
