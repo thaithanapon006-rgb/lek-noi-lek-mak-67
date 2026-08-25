@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<title>เลขน้อย เลขมาก ก็ 67</title>
+<meta name="description" content="เว็บไซต์เกมการเรียนรู้คณิตศาสตร์สำหรับเด็กประถม กับเพื่อนตัวจิ๋ว 67" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@600;700;800&family=Mitr:wght@400;500;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/animations.css" />
+</head>
+<body>
+
+<!-- พื้นหลังลอยตัว: เมฆ ดาว ฟองสบู่ ตกแต่งทุกหน้า -->
+<div class="bg-decor" aria-hidden="true">
+  <div class="cloud cloud--1"></div>
+  <div class="cloud cloud--2"></div>
+  <div class="cloud cloud--3"></div>
+  <div class="sparkle sparkle--1">✦</div>
+  <div class="sparkle sparkle--2">✦</div>
+  <div class="sparkle sparkle--3">✦</div>
+</div>
+
+<div id="app" class="app">
+
+  <!-- ============ หน้า 1: หน้าเปิด ============ -->
+  <section id="screen-start" class="screen screen--start is-active" aria-label="หน้าเปิด">
+    <div class="start-card">
+      <h1 class="logo">
+        <span class="logo__line">เลขน้อย เลขมาก</span>
+        <span class="logo__line logo__line--big">ก็ <span class="logo__num">67</span></span>
+      </h1>
+
+      <div class="mascot-stage" id="mascot-start">
+        <!-- ตัวละคร 67 ถูกแทรกด้วย JS จาก template ใน app.js -->
+      </div>
+
+      <button id="btn-start" class="btn btn--primary btn--huge" aria-label="เริ่มเล่น">
+        เริ่มเล่น <span class="btn__icon">▶</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ============ หน้า 2: รวมบทเรียน ============ -->
+  <section id="screen-lessons" class="screen screen--lessons" aria-label="เลือกบทเรียน">
+    <header class="topbar">
+      <button class="btn btn--round" id="btn-home" aria-label="กลับหน้าแรก">🏠</button>
+      <h2 class="topbar__title">เลือกบทที่อยากเล่น</h2>
+      <div class="mascot-mini" id="mascot-lessons-mini" aria-hidden="true"></div>
+    </header>
+    <div id="lesson-grid" class="lesson-grid" role="list"></div>
+  </section>
+
+  <!-- ============ หน้า 3: สื่อการสอน (สไลด์) ============ -->
+  <section id="screen-lesson" class="screen screen--lesson" aria-label="บทเรียน">
+    <header class="topbar">
+      <button class="btn btn--round" id="btn-back-to-lessons" aria-label="กลับไปเลือกบท">←</button>
+      <h2 class="topbar__title" id="lesson-title">ชื่อบท</h2>
+      <div class="progress-dots" id="slide-dots" role="list" aria-label="ความคืบหน้าของสื่อการสอน"></div>
+    </header>
+
+    <div class="slide-stage">
+      <div class="mascot-stage mascot-stage--small" id="mascot-lesson"></div>
+      <div class="slide-card" id="slide-card">
+        <div class="slide-card__body" id="slide-content"></div>
+      </div>
+    </div>
+
+    <div class="lesson-footer">
+      <button id="btn-slide-next" class="btn btn--primary btn--huge">ต่อไป <span class="btn__icon">→</span></button>
+      <button id="btn-go-play" class="btn btn--star btn--huge is-hidden" disabled aria-disabled="true">
+        ไปเล่นกัน! <span class="btn__icon">🎮</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ============ หน้า 4: มินิเกม ============ -->
+  <section id="screen-game" class="screen screen--game" aria-label="มินิเกม">
+    <header class="topbar">
+      <button class="btn btn--round" id="btn-back-to-lessons-2" aria-label="กลับไปเลือกบท">←</button>
+      <h2 class="topbar__title" id="game-title">มินิเกม</h2>
+      <div class="hud">
+        <span class="hud__item" id="hud-question">ข้อ 1/5</span>
+        <span class="hud__item hud__item--score" id="hud-score">⭐ 0</span>
+      </div>
+    </header>
+    <div class="game-stage" id="game-stage"></div>
+    <div class="feedback-toast" id="feedback-toast" aria-live="polite"></div>
+  </section>
+
+  <!-- ============ หน้า 5: สรุปผล ============ -->
+  <section id="screen-result" class="screen screen--result" aria-label="สรุปผลคะแนน">
+    <div class="result-card">
+      <div class="mascot-stage" id="mascot-result"></div>
+      <h2 class="result-title">เก่งมาก!</h2>
+      <div class="stars" id="result-stars" aria-label="ดาวที่ได้รับ"></div>
+      <div class="result-stats">
+        <div class="result-stats__row"><span>คะแนน</span><strong id="result-score">0</strong></div>
+        <div class="result-stats__row"><span>ตอบถูก</span><strong id="result-correct">0</strong></div>
+        <div class="result-stats__row"><span>ทั้งหมด</span><strong id="result-total">0</strong></div>
+      </div>
+      <div class="result-actions">
+        <button id="btn-replay" class="btn btn--secondary btn--huge">เล่นอีกครั้ง 🔁</button>
+        <button id="btn-back-lessons" class="btn btn--primary btn--huge">กลับไปเลือกบท 🗂️</button>
+      </div>
+    </div>
+    <div class="confetti-layer" id="confetti-layer" aria-hidden="true"></div>
+  </section>
+
+</div>
+
+<script src="js/lessons.js"></script>
+<script src="js/scoring.js"></script>
+<script src="js/games.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
