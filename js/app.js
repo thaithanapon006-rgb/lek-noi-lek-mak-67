@@ -56,10 +56,6 @@ const App = (() => {
     </svg>`;
   }
 
-  /* ---------------- ตัวละคร 67 เวอร์ชันหน้าเปิด/หน้าคะแนน ----------------
-     ย้ายไปเป็น Component แยกต่างหากแล้ว ดู js/mascot67.js (Mascot67)
-     ตามข้อกำหนดให้แยก Mascot ออกจากระบบหลัก ========================= */
-
   function setMascot(container, expression) {
     if (!container) return;
     container.innerHTML = mascotSVG(expression);
@@ -128,14 +124,12 @@ const App = (() => {
 
   /* ---------------- หน้าเปิด ---------------- */
   function initStart() {
-    const startEl = document.getElementById("mascot-start");
-    Mascot67.mount(startEl, "idle");
-    Mascot67.scheduleGreeting(startEl, 1200); // Greeting Animation หลังจากโหลดหน้าสักครู่
-
+    setMascot(document.getElementById("mascot-start"), "idle");
     document.getElementById("btn-start").addEventListener("click", () => {
-      Mascot67.trigger(startEl, "cheer-mid", 900); // กระโดด/ชูมือเบาๆ ตอนกดเริ่มเล่น
+      pulseMascot(document.getElementById("mascot-start"), "jump");
       setTimeout(() => {
         showScreen("lessons");
+        setMascot(document.getElementById("mascot-start"), "idle");
       }, 350);
     });
   }
@@ -146,171 +140,34 @@ const App = (() => {
     const grid = document.getElementById("lesson-grid");
     grid.innerHTML = "";
     LESSONS.forEach((lesson, idx) => {
-      if (lesson.locked) {
-        // บทที่ยังไม่เปิดใช้งาน (บทที่ 2-6 ในเวอร์ชันทดสอบนี้) — แสดงเป็นการ์ด "เร็วๆ นี้" กดไม่ได้
-        const card = document.createElement("div");
-        card.className = "lesson-card is-locked";
-        card.setAttribute("role", "listitem");
-        card.setAttribute("aria-disabled", "true");
-        card.setAttribute("aria-label", `${lesson.title} — เร็วๆ นี้ ยังเปิดใช้งานไม่ได้`);
-        card.innerHTML = `
-          <span class="lesson-card__badge lesson-card__badge--soon">🔒 เร็วๆ นี้</span>
-          ${lessonArt(lesson.icon)}
-          <h3 class="lesson-card__title">${lesson.title}</h3>
-          <p class="lesson-card__desc">${lesson.description}</p>
-        `;
-        grid.appendChild(card);
-        return;
-      }
-
       const card = document.createElement("button");
       card.className = "lesson-card";
       card.type = "button";
       card.setAttribute("role", "listitem");
-
-      if (lesson.type === "video") {
-        card.setAttribute("aria-label", `${lesson.chapterTitle} — ${lesson.difficultyLabel} — ${lesson.missionTitle}`);
-        card.innerHTML = `
-          <span class="lesson-card__badge">${lesson.chapterTitle} · ${lesson.difficultyIcon} ${lesson.difficultyLabel}</span>
-          ${lessonArt(lesson.icon || "🎬")}
-          <h3 class="lesson-card__title">${lesson.missionTitle}</h3>
-          <p class="lesson-card__desc">${lesson.description}</p>
-        `;
-      } else {
-        card.setAttribute("aria-label", `${lesson.title} — ${lesson.description}`);
-        card.innerHTML = `
-          <span class="lesson-card__badge">${lesson.badge}</span>
-          ${lessonArt(lesson.icon)}
-          <h3 class="lesson-card__title">${lesson.title}</h3>
-          <p class="lesson-card__desc">${lesson.description}</p>
-        `;
-      }
+      card.setAttribute("aria-label", `${lesson.title} — ${lesson.description}`);
+      card.innerHTML = `
+        <span class="lesson-card__badge">${lesson.badge}</span>
+        ${lessonArt(lesson.icon)}
+        <h3 class="lesson-card__title">${lesson.title}</h3>
+        <p class="lesson-card__desc">${lesson.description}</p>
+      `;
       card.addEventListener("click", () => openLesson(idx));
       grid.appendChild(card);
     });
   }
 
-  document.getElementById("btn-home").addEventListener("click", () => {
-    showScreen("start");
-    Mascot67.mount(document.getElementById("mascot-start"), "idle");
-    Mascot67.scheduleGreeting(document.getElementById("mascot-start"), 900);
-  });
+  document.getElementById("btn-home").addEventListener("click", () => showScreen("start"));
 
   /* ---------------- หน้าบทเรียน / สไลด์ ---------------- */
   function openLesson(idx) {
     currentLessonIndex = idx;
     slideIndex = 0;
     const lesson = LESSONS[idx];
-    const slidesMode = document.getElementById("slides-mode");
-    const videoMode = document.getElementById("video-mode");
-    const slideDotsWrap = document.getElementById("slide-dots");
-
-    const goPlayBtn = document.getElementById("btn-go-play");
-    const nextBtn = document.getElementById("btn-slide-next");
-    goPlayBtn.classList.add("is-hidden");
-    goPlayBtn.disabled = true;
-    goPlayBtn.setAttribute("aria-disabled", "true");
-    goPlayBtn.classList.remove("is-unlocked");
-
-    if (lesson.type === "video") {
-      document.getElementById("lesson-title").textContent = lesson.chapterTitle;
-      slidesMode.classList.add("is-hidden");
-      videoMode.classList.remove("is-hidden");
-      slideDotsWrap.innerHTML = "";
-      nextBtn.classList.add("is-hidden");
-      renderVideoLesson(lesson);
-    } else {
-      document.getElementById("lesson-title").textContent = lesson.title;
-      videoMode.classList.add("is-hidden");
-      slidesMode.classList.remove("is-hidden");
-      setMascot(document.getElementById("mascot-lesson"), "idle");
-      renderDots(lesson.slides.length);
-      renderSlide();
-    }
+    document.getElementById("lesson-title").textContent = lesson.title;
+    setMascot(document.getElementById("mascot-lesson"), "idle");
+    renderDots(lesson.slides.length);
+    renderSlide();
     showScreen("lesson");
-  }
-
-  /* ---------------- โหมดวิดีโอ (บทที่ 1) ---------------- */
-  function renderVideoLesson(lesson) {
-    YouTubeLesson.destroy();
-
-    document.getElementById("video-mission-title").textContent = lesson.missionTitle;
-    document.getElementById("video-difficulty-tag").textContent = `${lesson.difficultyIcon} ${lesson.difficultyLabel}`;
-    document.getElementById("video-description-text").textContent = lesson.description;
-    document.getElementById("video-credit-text").textContent = lesson.imageCredit;
-
-    const titleEl = document.getElementById("video-title-text");
-    titleEl.textContent = lesson.videoTitle;
-
-    // ดึงชื่อวิดีโอจริงจาก YouTube มาแสดงแทน (ไม่ใช้ชื่อสมมติ)
-    YouTubeLesson.fetchTitle(lesson.videoUrl).then(realTitle => {
-      if (realTitle) {
-        lesson.videoTitle = realTitle;
-        titleEl.textContent = realTitle;
-      }
-    });
-
-    const thumbs = YouTubeLesson.thumbnailUrls(lesson.videoId);
-    const coverImg = document.getElementById("video-cover-img");
-    coverImg.src = thumbs.max;
-    coverImg.onerror = () => {
-      coverImg.onerror = () => { coverImg.onerror = null; coverImg.src = thumbs.standard; };
-      coverImg.src = thumbs.high;
-    };
-
-    const cover = document.getElementById("video-cover");
-    const playerSlot = document.getElementById("video-player-slot");
-    const controls = document.getElementById("video-controls");
-    const coverPlayBtn = document.getElementById("video-cover-play");
-    const playPauseBtn = document.getElementById("btn-video-playpause");
-    const lockedEl = document.getElementById("video-status-locked");
-    const doneEl = document.getElementById("video-status-done");
-
-    cover.classList.remove("is-hidden");
-    playerSlot.classList.add("is-hidden");
-    controls.classList.add("is-hidden");
-    lockedEl.classList.remove("is-hidden");
-    doneEl.classList.add("is-hidden");
-
-    const startPlayback = () => {
-      cover.classList.add("is-hidden");
-      playerSlot.classList.remove("is-hidden");
-      controls.classList.remove("is-hidden");
-
-      YouTubeLesson.mount("yt-player", lesson.videoId, {
-        onReady: () => YouTubeLesson.play(),
-        onStateChange: (state) => {
-          // 1 = PLAYING, 2 = PAUSED (ตามค่าคงที่ของ YouTube IFrame API)
-          playPauseBtn.textContent = state === 1 ? "⏸" : "▶";
-        },
-        onComplete: () => {
-          lockedEl.classList.add("is-hidden");
-          doneEl.classList.remove("is-hidden");
-          goPlayReady();
-        }
-      });
-    };
-
-    coverPlayBtn.onclick = () => {
-      coverPlayBtn.onclick = null;
-      startPlayback();
-    };
-
-    playPauseBtn.onclick = () => {
-      if (playPauseBtn.textContent === "▶") {
-        YouTubeLesson.play();
-      } else {
-        YouTubeLesson.pause();
-      }
-    };
-  }
-
-  function goPlayReady() {
-    const goPlayBtn = document.getElementById("btn-go-play");
-    goPlayBtn.disabled = false;
-    goPlayBtn.setAttribute("aria-disabled", "false");
-    goPlayBtn.classList.remove("is-hidden");
-    goPlayBtn.classList.add("is-unlocked");
   }
 
   function renderDots(count) {
@@ -367,19 +224,16 @@ const App = (() => {
   });
 
   document.getElementById("btn-back-to-lessons").addEventListener("click", () => {
-    YouTubeLesson.destroy();
     showScreen("lessons");
     renderLessonGrid();
   });
   document.getElementById("btn-back-to-lessons-2").addEventListener("click", () => {
-    YouTubeLesson.destroy();
     showScreen("lessons");
     renderLessonGrid();
   });
 
   document.getElementById("btn-go-play").addEventListener("click", () => {
     if (document.getElementById("btn-go-play").disabled) return;
-    YouTubeLesson.destroy();
     openGame(currentLessonIndex);
   });
 
@@ -419,8 +273,7 @@ const App = (() => {
       starsEl.appendChild(s);
     }
 
-    const expression = Mascot67.celebrateFromStars(document.getElementById("mascot-result"), stars);
-    document.getElementById("result-title").textContent = Mascot67.messageFor(expression);
+    setMascot(document.getElementById("mascot-result"), "celebrate");
     showScreen("result");
     launchConfetti();
   }
