@@ -63,10 +63,41 @@
       <div class="progress-dots" id="slide-dots" role="list" aria-label="ความคืบหน้าของสื่อการสอน"></div>
     </header>
 
-    <div class="slide-stage">
+    <!-- โหมดสไลด์ (ใช้กับบทที่ 2-6 ในอนาคต) -->
+    <div class="slide-stage" id="slides-mode">
       <div class="mascot-stage mascot-stage--small" id="mascot-lesson"></div>
       <div class="slide-card" id="slide-card">
         <div class="slide-card__body" id="slide-content"></div>
+      </div>
+    </div>
+
+    <!-- โหมดวิดีโอ (ใช้กับบทที่ 1 ในปัจจุบัน) -->
+    <div class="video-mode is-hidden" id="video-mode">
+      <p class="video-mission-title" id="video-mission-title"></p>
+
+      <div class="video-frame-wrap" id="video-frame-wrap">
+        <!-- ปกวิดีโอ: ใช้ Thumbnail จริงของ YouTube -->
+        <div class="video-cover" id="video-cover">
+          <img id="video-cover-img" class="video-cover__img" alt="ปกวิดีโอบทเรียน" />
+          <button id="video-cover-play" class="video-cover__play" aria-label="เปิดวิดีโอ">▶</button>
+        </div>
+        <!-- ที่สำหรับ mount YouTube Player (แสดงหลังกดเล่น) -->
+        <div class="video-player-slot is-hidden" id="video-player-slot">
+          <div id="yt-player"></div>
+        </div>
+      </div>
+
+      <!-- ปุ่มเล่น/หยุดของเว็บเอง แทนแถบควบคุมของ YouTube -->
+      <div class="video-controls is-hidden" id="video-controls">
+        <button id="btn-video-playpause" class="btn btn--round btn--round-lg" aria-label="เล่นหรือหยุดวิดีโอ">▶</button>
+      </div>
+
+      <p class="video-title" id="video-title-text"></p>
+      <p class="video-credit" id="video-credit-text"></p>
+
+      <div class="video-status" id="video-status">
+        <span class="video-status__locked" id="video-status-locked">🔒 ดูวิดีโอให้จบก่อนนะ 67 รออยู่!</span>
+        <span class="video-status__done is-hidden" id="video-status-done">🎉 ดูจบแล้ว! พร้อมทำภารกิจหรือยัง?</span>
       </div>
     </div>
 
@@ -116,6 +147,7 @@
 <script src="js/lessons.js"></script>
 <script src="js/scoring.js"></script>
 <script src="js/games.js"></script>
+<script src="js/youtube.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

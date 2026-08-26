@@ -56,6 +56,75 @@ const App = (() => {
     </svg>`;
   }
 
+  /* ---------------- ตัวละคร 67 เวอร์ชันหน้าเปิด (อ้วนป้อม + หมวกแก๊ป + ถือเลข 6,7) ---------------- */
+  function mascotSVGStart(expression = "idle") {
+    const animClass = {
+      idle: "anim-idle",
+      jump: "anim-jump",
+      happy: "anim-happy",
+      encourage: "anim-encourage"
+    }[expression] || "anim-idle";
+
+    return `
+    <svg class="mascot ${animClass}" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ตัวละคร 67 สวมหมวกแก๊ป ถือเลข 6 และ 7">
+      <ellipse cx="110" cy="200" rx="58" ry="10" fill="rgba(43,33,69,0.10)"/>
+
+      <!-- แขน/มือซ้าย ถือเลข 6 (ลอยขึ้นลงตลอดเวลา) -->
+      <g class="mascot-hand-left" style="transform-origin:56px 130px;">
+        <rect x="30" y="118" width="30" height="46" rx="15" fill="#f2b93f"/>
+        <circle cx="42" cy="168" r="20" fill="#fff" stroke="#f2b93f" stroke-width="4"/>
+        <text x="42" y="176" text-anchor="middle" font-family="Kanit, sans-serif" font-weight="700" font-size="20" fill="#ff6f59">6</text>
+      </g>
+
+      <!-- แขน/มือขวา ถือเลข 7 (ลอยขึ้นลงตลอดเวลา สวนจังหวะกับซ้าย) -->
+      <g class="mascot-hand-right" style="transform-origin:164px 130px;">
+        <rect x="160" y="118" width="30" height="46" rx="15" fill="#f2b93f"/>
+        <circle cx="178" cy="168" r="20" fill="#fff" stroke="#f2b93f" stroke-width="4"/>
+        <text x="178" y="176" text-anchor="middle" font-family="Kanit, sans-serif" font-weight="700" font-size="20" fill="#ff6f59">7</text>
+      </g>
+
+      <!-- ลำตัวอ้วนป้อมกลม -->
+      <ellipse cx="110" cy="128" rx="76" ry="70" fill="#ffd35c" stroke="#f2b93f" stroke-width="4"/>
+
+      <!-- แก้มแดง -->
+      <ellipse cx="68" cy="140" rx="11" ry="8" fill="#ff9f8f" opacity="0.7"/>
+      <ellipse cx="152" cy="140" rx="11" ry="8" fill="#ff9f8f" opacity="0.7"/>
+
+      <!-- ตา (ข้างหนึ่งเหลือบ ดูกวนๆ) -->
+      <ellipse class="mascot-eye" cx="86" cy="118" rx="9" ry="11" fill="#3a2b55"/>
+      <ellipse class="mascot-eye" cx="132" cy="120" rx="9" ry="9" fill="#3a2b55"/>
+      <path d="M120 104 Q132 96 144 102" stroke="#3a2b55" stroke-width="4" fill="none" stroke-linecap="round"/>
+
+      <!-- ปากยิ้มกวนๆ (smirk) -->
+      <path d="M84 148 Q104 166 138 150" stroke="#3a2b55" stroke-width="5" fill="none" stroke-linecap="round"/>
+
+      <!-- หมวกแก๊ป เอียงเล็กน้อยให้ดูขี้เล่น -->
+      <g transform="rotate(-10 110 66)">
+        <path d="M62 70 Q110 24 158 70 Z" fill="#ff6f59"/>
+        <ellipse cx="118" cy="70" rx="62" ry="12" fill="#e85a45"/>
+        <circle cx="110" cy="40" r="6" fill="#e85a45"/>
+      </g>
+
+      <!-- เท้าเล็กๆ -->
+      <ellipse cx="86" cy="196" rx="14" ry="8" fill="#f2b93f"/>
+      <ellipse cx="134" cy="196" rx="14" ry="8" fill="#f2b93f"/>
+    </svg>`;
+  }
+
+  function setMascotStart(container, expression) {
+    if (!container) return;
+    container.innerHTML = mascotSVGStart(expression);
+  }
+
+  function pulseMascotStart(container, expression) {
+    if (!container) return;
+    const svg = container.querySelector("svg.mascot");
+    if (!svg) return setMascotStart(container, expression);
+    svg.classList.remove("anim-jump", "anim-happy", "anim-encourage");
+    void svg.offsetWidth;
+    setMascotStart(container, expression);
+  }
+
   function setMascot(container, expression) {
     if (!container) return;
     container.innerHTML = mascotSVG(expression);
@@ -124,12 +193,12 @@ const App = (() => {
 
   /* ---------------- หน้าเปิด ---------------- */
   function initStart() {
-    setMascot(document.getElementById("mascot-start"), "idle");
+    setMascotStart(document.getElementById("mascot-start"), "idle");
     document.getElementById("btn-start").addEventListener("click", () => {
-      pulseMascot(document.getElementById("mascot-start"), "jump");
+      pulseMascotStart(document.getElementById("mascot-start"), "jump");
       setTimeout(() => {
         showScreen("lessons");
-        setMascot(document.getElementById("mascot-start"), "idle");
+        setMascotStart(document.getElementById("mascot-start"), "idle");
       }, 350);
     });
   }
@@ -140,17 +209,45 @@ const App = (() => {
     const grid = document.getElementById("lesson-grid");
     grid.innerHTML = "";
     LESSONS.forEach((lesson, idx) => {
+      if (lesson.locked) {
+        // บทที่ยังไม่เปิดใช้งาน (บทที่ 2-6 ในเวอร์ชันทดสอบนี้) — แสดงเป็นการ์ด "เร็วๆ นี้" กดไม่ได้
+        const card = document.createElement("div");
+        card.className = "lesson-card is-locked";
+        card.setAttribute("role", "listitem");
+        card.setAttribute("aria-disabled", "true");
+        card.setAttribute("aria-label", `${lesson.title} — เร็วๆ นี้ ยังเปิดใช้งานไม่ได้`);
+        card.innerHTML = `
+          <span class="lesson-card__badge lesson-card__badge--soon">🔒 เร็วๆ นี้</span>
+          ${lessonArt(lesson.icon)}
+          <h3 class="lesson-card__title">${lesson.title}</h3>
+          <p class="lesson-card__desc">${lesson.description}</p>
+        `;
+        grid.appendChild(card);
+        return;
+      }
+
       const card = document.createElement("button");
       card.className = "lesson-card";
       card.type = "button";
       card.setAttribute("role", "listitem");
-      card.setAttribute("aria-label", `${lesson.title} — ${lesson.description}`);
-      card.innerHTML = `
-        <span class="lesson-card__badge">${lesson.badge}</span>
-        ${lessonArt(lesson.icon)}
-        <h3 class="lesson-card__title">${lesson.title}</h3>
-        <p class="lesson-card__desc">${lesson.description}</p>
-      `;
+
+      if (lesson.type === "video") {
+        card.setAttribute("aria-label", `${lesson.chapterTitle} — ${lesson.missionTitle}`);
+        card.innerHTML = `
+          <span class="lesson-card__badge">${lesson.chapterTitle}</span>
+          ${lessonArt("🦀")}
+          <h3 class="lesson-card__title">${lesson.missionTitle}</h3>
+          <p class="lesson-card__desc">ดูวิดีโอให้จบ แล้วไปช่วยกู้อุโมงค์ปูกัน!</p>
+        `;
+      } else {
+        card.setAttribute("aria-label", `${lesson.title} — ${lesson.description}`);
+        card.innerHTML = `
+          <span class="lesson-card__badge">${lesson.badge}</span>
+          ${lessonArt(lesson.icon)}
+          <h3 class="lesson-card__title">${lesson.title}</h3>
+          <p class="lesson-card__desc">${lesson.description}</p>
+        `;
+      }
       card.addEventListener("click", () => openLesson(idx));
       grid.appendChild(card);
     });
@@ -163,11 +260,114 @@ const App = (() => {
     currentLessonIndex = idx;
     slideIndex = 0;
     const lesson = LESSONS[idx];
-    document.getElementById("lesson-title").textContent = lesson.title;
-    setMascot(document.getElementById("mascot-lesson"), "idle");
-    renderDots(lesson.slides.length);
-    renderSlide();
+    const slidesMode = document.getElementById("slides-mode");
+    const videoMode = document.getElementById("video-mode");
+    const slideDotsWrap = document.getElementById("slide-dots");
+
+    const goPlayBtn = document.getElementById("btn-go-play");
+    const nextBtn = document.getElementById("btn-slide-next");
+    goPlayBtn.classList.add("is-hidden");
+    goPlayBtn.disabled = true;
+    goPlayBtn.setAttribute("aria-disabled", "true");
+    goPlayBtn.classList.remove("is-unlocked");
+
+    if (lesson.type === "video") {
+      document.getElementById("lesson-title").textContent = lesson.chapterTitle;
+      slidesMode.classList.add("is-hidden");
+      videoMode.classList.remove("is-hidden");
+      slideDotsWrap.innerHTML = "";
+      nextBtn.classList.add("is-hidden");
+      renderVideoLesson(lesson);
+    } else {
+      document.getElementById("lesson-title").textContent = lesson.title;
+      videoMode.classList.add("is-hidden");
+      slidesMode.classList.remove("is-hidden");
+      setMascot(document.getElementById("mascot-lesson"), "idle");
+      renderDots(lesson.slides.length);
+      renderSlide();
+    }
     showScreen("lesson");
+  }
+
+  /* ---------------- โหมดวิดีโอ (บทที่ 1) ---------------- */
+  function renderVideoLesson(lesson) {
+    YouTubeLesson.destroy();
+
+    document.getElementById("video-mission-title").textContent = lesson.missionTitle;
+    document.getElementById("video-credit-text").textContent = lesson.imageCredit;
+
+    const titleEl = document.getElementById("video-title-text");
+    titleEl.textContent = lesson.videoTitle;
+
+    // ดึงชื่อวิดีโอจริงจาก YouTube มาแสดงแทน (ไม่ใช้ชื่อสมมติ)
+    YouTubeLesson.fetchTitle(lesson.videoUrl).then(realTitle => {
+      if (realTitle) {
+        lesson.videoTitle = realTitle;
+        titleEl.textContent = realTitle;
+      }
+    });
+
+    const thumbs = YouTubeLesson.thumbnailUrls(lesson.videoId);
+    const coverImg = document.getElementById("video-cover-img");
+    coverImg.src = thumbs.max;
+    coverImg.onerror = () => {
+      coverImg.onerror = () => { coverImg.onerror = null; coverImg.src = thumbs.standard; };
+      coverImg.src = thumbs.high;
+    };
+
+    const cover = document.getElementById("video-cover");
+    const playerSlot = document.getElementById("video-player-slot");
+    const controls = document.getElementById("video-controls");
+    const coverPlayBtn = document.getElementById("video-cover-play");
+    const playPauseBtn = document.getElementById("btn-video-playpause");
+    const lockedEl = document.getElementById("video-status-locked");
+    const doneEl = document.getElementById("video-status-done");
+
+    cover.classList.remove("is-hidden");
+    playerSlot.classList.add("is-hidden");
+    controls.classList.add("is-hidden");
+    lockedEl.classList.remove("is-hidden");
+    doneEl.classList.add("is-hidden");
+
+    const startPlayback = () => {
+      cover.classList.add("is-hidden");
+      playerSlot.classList.remove("is-hidden");
+      controls.classList.remove("is-hidden");
+
+      YouTubeLesson.mount("yt-player", lesson.videoId, {
+        onReady: () => YouTubeLesson.play(),
+        onStateChange: (state) => {
+          // 1 = PLAYING, 2 = PAUSED (ตามค่าคงที่ของ YouTube IFrame API)
+          playPauseBtn.textContent = state === 1 ? "⏸" : "▶";
+        },
+        onComplete: () => {
+          lockedEl.classList.add("is-hidden");
+          doneEl.classList.remove("is-hidden");
+          goPlayReady();
+        }
+      });
+    };
+
+    coverPlayBtn.onclick = () => {
+      coverPlayBtn.onclick = null;
+      startPlayback();
+    };
+
+    playPauseBtn.onclick = () => {
+      if (playPauseBtn.textContent === "▶") {
+        YouTubeLesson.play();
+      } else {
+        YouTubeLesson.pause();
+      }
+    };
+  }
+
+  function goPlayReady() {
+    const goPlayBtn = document.getElementById("btn-go-play");
+    goPlayBtn.disabled = false;
+    goPlayBtn.setAttribute("aria-disabled", "false");
+    goPlayBtn.classList.remove("is-hidden");
+    goPlayBtn.classList.add("is-unlocked");
   }
 
   function renderDots(count) {
@@ -224,16 +424,19 @@ const App = (() => {
   });
 
   document.getElementById("btn-back-to-lessons").addEventListener("click", () => {
+    YouTubeLesson.destroy();
     showScreen("lessons");
     renderLessonGrid();
   });
   document.getElementById("btn-back-to-lessons-2").addEventListener("click", () => {
+    YouTubeLesson.destroy();
     showScreen("lessons");
     renderLessonGrid();
   });
 
   document.getElementById("btn-go-play").addEventListener("click", () => {
     if (document.getElementById("btn-go-play").disabled) return;
+    YouTubeLesson.destroy();
     openGame(currentLessonIndex);
   });
 

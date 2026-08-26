@@ -53,6 +53,14 @@
   50% { transform: scale(1.08); }
 }
 
+/* ---------- มือของ 67 (เวอร์ชันหน้าเปิด) ลอยขึ้นลงตลอดเวลาแบบสวนจังหวะกัน ---------- */
+@keyframes mascot-hand-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-7px) rotate(-4deg); }
+}
+.mascot-hand-left { animation: mascot-hand-float 2.4s ease-in-out infinite; }
+.mascot-hand-right { animation: mascot-hand-float 2.4s ease-in-out infinite reverse; animation-delay: .3s; }
+
 .mascot { transform-origin: center bottom; }
 .mascot.anim-idle { animation: mascot-idle 2.6s ease-in-out infinite; }
 .mascot .mascot-eye { transform-origin: center; animation: mascot-blink 4.5s ease-in-out infinite; }

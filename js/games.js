@@ -75,6 +75,15 @@ const Games = (() => {
         promptHTML: q.text,
         options: choices.map(v => ({ label: String(v), correct: v === answer }))
       };
+    },
+
+    /* คำถามสำเร็จรูปแบบเลือกตอบ (ใช้กับบทที่ 1 — คำถามและคำตอบมาจากผู้ใช้โดยตรง
+       ไม่มีการสุ่มหรือสร้างตัวเลือกเพิ่มเติมเอง เก็บลำดับตัวเลือกตามที่กำหนดไว้เป๊ะๆ) */
+    quiz(q) {
+      return {
+        promptHTML: `<span class="quiz-icon">${q.icon || ""}</span><strong class="quiz-title">${q.title || ""}</strong><br>${q.prompt}`,
+        options: q.options.map(o => ({ label: o.label, correct: !!o.correct }))
+      };
     }
   };
 
@@ -105,10 +114,12 @@ const Games = (() => {
     updateHud();
     state.els.stage.innerHTML = "";
 
-    const instructionEl = document.createElement("div");
-    instructionEl.className = "game-prompt";
-    instructionEl.innerHTML = lesson.game.instruction;
-    state.els.stage.appendChild(instructionEl);
+    if (lesson.game.instruction) {
+      const instructionEl = document.createElement("div");
+      instructionEl.className = "game-prompt";
+      instructionEl.innerHTML = lesson.game.instruction;
+      state.els.stage.appendChild(instructionEl);
+    }
 
     if (type === "order") {
       renderOrder(q);
