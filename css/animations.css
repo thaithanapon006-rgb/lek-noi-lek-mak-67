@@ -61,6 +61,14 @@
 .mascot-hand-left { animation: mascot-hand-float 2.4s ease-in-out infinite; }
 .mascot-hand-right { animation: mascot-hand-float 2.4s ease-in-out infinite reverse; animation-delay: .3s; }
 
+/* ---------- เท้า/รองเท้าลอยของ 67 (เวอร์ชันหน้าเปิด) ลอยเบาๆ สวนจังหวะกัน ---------- */
+@keyframes mascot-foot-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+.mascot-foot-left { animation: mascot-foot-float 2.8s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.mascot-foot-right { animation: mascot-foot-float 2.8s ease-in-out infinite; animation-delay: .5s; transform-box: fill-box; transform-origin: center; }
+
 .mascot { transform-origin: center bottom; }
 .mascot.anim-idle { animation: mascot-idle 2.6s ease-in-out infinite; }
 .mascot .mascot-eye { transform-origin: center; animation: mascot-blink 4.5s ease-in-out infinite; }

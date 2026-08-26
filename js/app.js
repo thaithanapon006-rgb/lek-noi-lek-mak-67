@@ -56,7 +56,10 @@ const App = (() => {
     </svg>`;
   }
 
-  /* ---------------- ตัวละคร 67 เวอร์ชันหน้าเปิด (อ้วนป้อม + หมวกแก๊ป + ถือเลข 6,7) ---------------- */
+  /* ---------------- ตัวละคร 67 เวอร์ชันหน้าเปิด ----------------
+     สไตล์ "อีโมจิลอยตัว" แบบมีมยุค 2010s: หัวกลมไล่เฉดสีเหลือง
+     ตาหรี่ง่วงๆ มือถุงมือลอยทำท่ายักไหล่ รองเท้าผ้าใบลอยไม่มีขา
+     เลข 6 อยู่ฝั่งซ้าย เลข 7 อยู่ฝั่งขวา ตามที่ออกแบบไว้ */
   function mascotSVGStart(expression = "idle") {
     const animClass = {
       idle: "anim-idle",
@@ -65,49 +68,79 @@ const App = (() => {
       encourage: "anim-encourage"
     }[expression] || "anim-idle";
 
+    // ปากยิ้มมุมเล็กน้อยแบบไม่ค่อยเต็มใจ ยกเว้นตอนดีใจ/กระโดด ให้ยิ้มกว้างขึ้นนิดหน่อย
+    const mouth = (expression === "happy" || expression === "jump")
+      ? `<path d="M92 152 Q120 168 148 152" stroke="#2b2145" stroke-width="5" fill="none" stroke-linecap="round"/>`
+      : `<path d="M96 153 Q120 158 144 152" stroke="#2b2145" stroke-width="5" fill="none" stroke-linecap="round"/>`;
+
     return `
-    <svg class="mascot ${animClass}" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ตัวละคร 67 สวมหมวกแก๊ป ถือเลข 6 และ 7">
-      <ellipse cx="110" cy="200" rx="58" ry="10" fill="rgba(43,33,69,0.10)"/>
+    <svg class="mascot ${animClass}" viewBox="0 0 240 270" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ตัวละคร 67 หน้าตากวนๆ ยักไหล่ ถือเลข 6 และ 7">
+      <defs>
+        <linearGradient id="mascotHeadGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#fff6c9"/>
+          <stop offset="55%" stop-color="#ffd35c"/>
+          <stop offset="100%" stop-color="#f2a93f"/>
+        </linearGradient>
+      </defs>
 
-      <!-- แขน/มือซ้าย ถือเลข 6 (ลอยขึ้นลงตลอดเวลา) -->
-      <g class="mascot-hand-left" style="transform-origin:56px 130px;">
-        <rect x="30" y="118" width="30" height="46" rx="15" fill="#f2b93f"/>
-        <circle cx="42" cy="168" r="20" fill="#fff" stroke="#f2b93f" stroke-width="4"/>
-        <text x="42" y="176" text-anchor="middle" font-family="Kanit, sans-serif" font-weight="700" font-size="20" fill="#ff6f59">6</text>
+      <ellipse cx="120" cy="262" rx="72" ry="8" fill="rgba(43,33,69,0.10)"/>
+
+      <!-- เลข 6 (ซ้าย) / เลข 7 (ขวา) ลอยเหนือมือ -->
+      <text x="42" y="82" text-anchor="middle" font-family="Kanit, sans-serif" font-weight="800" font-size="36" fill="#241c33">6</text>
+      <text x="198" y="82" text-anchor="middle" font-family="Kanit, sans-serif" font-weight="800" font-size="36" fill="#241c33">7</text>
+
+      <!-- มือถุงมือลอยซ้าย (ยักไหล่ แบมือหงายขึ้น) -->
+      <g class="mascot-hand-left" style="transform-origin:42px 150px;">
+        <ellipse cx="25" cy="128" rx="9" ry="13" fill="#fff" stroke="#ddd" stroke-width="1.5"/>
+        <ellipse cx="42" cy="120" rx="9" ry="14" fill="#fff" stroke="#ddd" stroke-width="1.5"/>
+        <ellipse cx="59" cy="128" rx="9" ry="13" fill="#fff" stroke="#ddd" stroke-width="1.5"/>
+        <ellipse cx="42" cy="150" rx="26" ry="24" fill="#fff" stroke="#ddd" stroke-width="2"/>
+        <ellipse cx="65" cy="156" rx="10" ry="15" fill="#fff" stroke="#ddd" stroke-width="1.5"/>
       </g>
 
-      <!-- แขน/มือขวา ถือเลข 7 (ลอยขึ้นลงตลอดเวลา สวนจังหวะกับซ้าย) -->
-      <g class="mascot-hand-right" style="transform-origin:164px 130px;">
-        <rect x="160" y="118" width="30" height="46" rx="15" fill="#f2b93f"/>
-        <circle cx="178" cy="168" r="20" fill="#fff" stroke="#f2b93f" stroke-width="4"/>
-        <text x="178" y="176" text-anchor="middle" font-family="Kanit, sans-serif" font-weight="700" font-size="20" fill="#ff6f59">7</text>
+      <!-- มือถุงมือลอยขวา (กระจกสะท้อนของซ้าย) -->
+      <g class="mascot-hand-right" style="transform-origin:198px 150px;">
+        <ellipse cx="215" cy="128" rx="9" ry="13" fill="#fff" stroke="#ddd" stroke-width="1.5"/>
+        <ellipse cx="198" cy="120" rx="9" ry="14" fill="#fff" stroke="#ddd" stroke-width="1.5"/>
+        <ellipse cx="181" cy="128" rx="9" ry="13" fill="#fff" stroke="#ddd" stroke-width="1.5"/>
+        <ellipse cx="198" cy="150" rx="26" ry="24" fill="#fff" stroke="#ddd" stroke-width="2"/>
+        <ellipse cx="175" cy="156" rx="10" ry="15" fill="#fff" stroke="#ddd" stroke-width="1.5"/>
       </g>
 
-      <!-- ลำตัวอ้วนป้อมกลม -->
-      <ellipse cx="110" cy="128" rx="76" ry="70" fill="#ffd35c" stroke="#f2b93f" stroke-width="4"/>
-
-      <!-- แก้มแดง -->
-      <ellipse cx="68" cy="140" rx="11" ry="8" fill="#ff9f8f" opacity="0.7"/>
-      <ellipse cx="152" cy="140" rx="11" ry="8" fill="#ff9f8f" opacity="0.7"/>
-
-      <!-- ตา (ข้างหนึ่งเหลือบ ดูกวนๆ) -->
-      <ellipse class="mascot-eye" cx="86" cy="118" rx="9" ry="11" fill="#3a2b55"/>
-      <ellipse class="mascot-eye" cx="132" cy="120" rx="9" ry="9" fill="#3a2b55"/>
-      <path d="M120 104 Q132 96 144 102" stroke="#3a2b55" stroke-width="4" fill="none" stroke-linecap="round"/>
-
-      <!-- ปากยิ้มกวนๆ (smirk) -->
-      <path d="M84 148 Q104 166 138 150" stroke="#3a2b55" stroke-width="5" fill="none" stroke-linecap="round"/>
-
-      <!-- หมวกแก๊ป เอียงเล็กน้อยให้ดูขี้เล่น -->
-      <g transform="rotate(-10 110 66)">
-        <path d="M62 70 Q110 24 158 70 Z" fill="#ff6f59"/>
-        <ellipse cx="118" cy="70" rx="62" ry="12" fill="#e85a45"/>
-        <circle cx="110" cy="40" r="6" fill="#e85a45"/>
+      <!-- รองเท้าผ้าใบลอยซ้าย/ขวา (ไม่มีขา) -->
+      <g class="mascot-foot-left" transform="translate(95,210)">
+        <rect x="-24" y="-8" width="48" height="14" rx="7" fill="#c2c2c2"/>
+        <rect x="-24" y="0" width="48" height="26" rx="10" fill="#d8d8d8" stroke="#bcbcbc" stroke-width="2"/>
+        <rect x="-26" y="22" width="52" height="10" rx="5" fill="#ffffff" stroke="#cfcfcf" stroke-width="2"/>
+        <circle cx="8" cy="14" r="4.5" fill="#e0453f"/>
+        <circle cx="8" cy="14" r="2" fill="#ffffff"/>
+      </g>
+      <g class="mascot-foot-right" transform="translate(145,210)">
+        <rect x="-24" y="-8" width="48" height="14" rx="7" fill="#c2c2c2"/>
+        <rect x="-24" y="0" width="48" height="26" rx="10" fill="#d8d8d8" stroke="#bcbcbc" stroke-width="2"/>
+        <rect x="-26" y="22" width="52" height="10" rx="5" fill="#ffffff" stroke="#cfcfcf" stroke-width="2"/>
+        <circle cx="-8" cy="14" r="4.5" fill="#e0453f"/>
+        <circle cx="-8" cy="14" r="2" fill="#ffffff"/>
       </g>
 
-      <!-- เท้าเล็กๆ -->
-      <ellipse cx="86" cy="196" rx="14" ry="8" fill="#f2b93f"/>
-      <ellipse cx="134" cy="196" rx="14" ry="8" fill="#f2b93f"/>
+      <!-- หัวทรงกลมไล่เฉดสีเหลือง (ลำตัวหลักของ 67) -->
+      <circle cx="120" cy="115" r="88" fill="url(#mascotHeadGrad)" stroke="#e2952e" stroke-width="2.5"/>
+
+      <!-- ตาหรี่ง่วงๆ ทั้งสองข้าง -->
+      <g class="mascot-eye" style="transform-origin:88px 108px;">
+        <ellipse cx="88" cy="108" rx="15" ry="17" fill="#fff"/>
+        <circle cx="88" cy="113" r="7" fill="#241c33"/>
+      </g>
+      <path d="M73 108 A15 17 0 0 1 103 108 Z" fill="#ffd35c"/>
+
+      <g class="mascot-eye" style="transform-origin:152px 108px;">
+        <ellipse cx="152" cy="108" rx="15" ry="17" fill="#fff"/>
+        <circle cx="152" cy="113" r="7" fill="#241c33"/>
+      </g>
+      <path d="M137 108 A15 17 0 0 1 167 108 Z" fill="#ffd35c"/>
+
+      <!-- ปากเรียบเฉยแบบกวนๆ -->
+      ${mouth}
     </svg>`;
   }
 
@@ -232,12 +265,12 @@ const App = (() => {
       card.setAttribute("role", "listitem");
 
       if (lesson.type === "video") {
-        card.setAttribute("aria-label", `${lesson.chapterTitle} — ${lesson.missionTitle}`);
+        card.setAttribute("aria-label", `${lesson.chapterTitle} — ${lesson.difficultyLabel} — ${lesson.missionTitle}`);
         card.innerHTML = `
-          <span class="lesson-card__badge">${lesson.chapterTitle}</span>
-          ${lessonArt("🦀")}
+          <span class="lesson-card__badge">${lesson.chapterTitle} · ${lesson.difficultyIcon} ${lesson.difficultyLabel}</span>
+          ${lessonArt(lesson.icon || "🎬")}
           <h3 class="lesson-card__title">${lesson.missionTitle}</h3>
-          <p class="lesson-card__desc">ดูวิดีโอให้จบ แล้วไปช่วยกู้อุโมงค์ปูกัน!</p>
+          <p class="lesson-card__desc">${lesson.description}</p>
         `;
       } else {
         card.setAttribute("aria-label", `${lesson.title} — ${lesson.description}`);
@@ -294,6 +327,8 @@ const App = (() => {
     YouTubeLesson.destroy();
 
     document.getElementById("video-mission-title").textContent = lesson.missionTitle;
+    document.getElementById("video-difficulty-tag").textContent = `${lesson.difficultyIcon} ${lesson.difficultyLabel}`;
+    document.getElementById("video-description-text").textContent = lesson.description;
     document.getElementById("video-credit-text").textContent = lesson.imageCredit;
 
     const titleEl = document.getElementById("video-title-text");
