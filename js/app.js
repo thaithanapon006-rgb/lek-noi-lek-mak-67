@@ -80,7 +80,7 @@ const App = (() => {
   /* ---------------- state ของแอป ---------------- */
   let currentLessonIndex = 0;
   let slideIndex = 0;
-  let currentUser = null; // { code, profile } — profile มาจาก DataService (ไม่มีชื่อจริง-นามสกุล)
+  let currentUser = null; // { code, pin, profile } — profile มาจาก DataService (ไม่มีชื่อจริง-นามสกุล)
   let courseCtx = null;   // { lesson } — บทที่กำลังเรียนอยู่ใน Course Flow ปัจจุบัน
 
   /* ---------------- element refs ---------------- */
@@ -118,9 +118,9 @@ const App = (() => {
   function initOnboarding() {
     const nickInput = document.getElementById("input-nickname");
     const codeInput = document.getElementById("input-code");
+    const codeLabel = document.getElementById("label-code");
     const tabNew = document.getElementById("tab-new-code");
     const tabOld = document.getElementById("tab-old-code");
-    const panelOld = document.getElementById("panel-old-code");
     const startBtn = document.getElementById("btn-onboard-start");
     const hint = document.getElementById("onboard-hint");
     const modeNote = document.getElementById("onboard-mode-note");
@@ -137,7 +137,8 @@ const App = (() => {
       tabOld.classList.toggle("is-active", mode === "old");
       tabNew.setAttribute("aria-selected", String(mode === "new"));
       tabOld.setAttribute("aria-selected", String(mode === "old"));
-      panelOld.classList.toggle("is-hidden", mode !== "old");
+      codeLabel.textContent = mode === "new" ? "สร้างรหัสผ่าน 4 ตัว (ตัวเลข)" : "กรอกรหัสผ่านเดิม (4 ตัว)";
+      codeInput.placeholder = mode === "new" ? "เช่น 1234" : "รหัส 4 ตัวที่เคยตั้งไว้";
       validate();
     }
     tabNew.addEventListener("click", () => switchTab("new"));
@@ -145,42 +146,50 @@ const App = (() => {
 
     function validate() {
       const nickOk = nickInput.value.trim().length > 0;
-      const codeOk = mode === "new" || codeInput.value.trim().length >= 4;
+      const codeOk = /^\d{4}$/.test(codeInput.value.trim());
       const ok = nickOk && codeOk;
       startBtn.disabled = !ok;
       startBtn.setAttribute("aria-disabled", String(!ok));
-      hint.textContent = "🔒 กรอกข้อมูลให้ครบก่อนนะ 67 รออยู่!";
+      hint.textContent = "🔒 กรอกชื่อเล่นและรหัสผ่าน 4 ตัวให้ครบก่อนนะ 67 รออยู่!";
       hint.classList.toggle("is-hidden", ok);
       return ok;
     }
     nickInput.addEventListener("input", validate);
-    codeInput.addEventListener("input", validate);
+    codeInput.addEventListener("input", () => {
+      codeInput.value = codeInput.value.replace(/\D/g, "").slice(0, 4);
+      validate();
+    });
     validate();
 
     startBtn.addEventListener("click", async () => {
       if (!validate()) return;
       startBtn.disabled = true;
       const nickname = nickInput.value.trim();
+      const pin = codeInput.value.trim();
       try {
         if (mode === "new") {
-          const { code, profile } = await DataService.createUser(nickname);
-          currentUser = { code, profile };
-          window.alert(`จำรหัสของเราไว้นะ: ${code}\n(ใช้รหัสนี้เพื่อกลับมาเล่นต่อในครั้งถัดไปได้)`);
-        } else {
-          const code = codeInput.value.trim().toUpperCase();
-          const profile = await DataService.loadUser(code);
-          if (!profile) {
-            hint.textContent = "❌ ไม่พบรหัสนี้นะ ลองตรวจสอบอีกครั้ง";
+          const result = await DataService.createUser(nickname, pin);
+          if (result.error === "exists") {
+            hint.textContent = "😅 ชื่อและรหัสนี้ถูกใช้ไปแล้วนะ ลองตั้งรหัสอื่นดูสิ";
             hint.classList.remove("is-hidden");
             startBtn.disabled = false;
             return;
           }
-          currentUser = { code, profile };
+          currentUser = { code: result.key, pin, profile: result.profile };
+        } else {
+          const result = await DataService.loadUser(nickname, pin);
+          if (!result) {
+            hint.textContent = "❌ ไม่พบข้อมูลนะ ลองตรวจสอบชื่อเล่นและรหัสผ่านอีกครั้ง";
+            hint.classList.remove("is-hidden");
+            startBtn.disabled = false;
+            return;
+          }
+          currentUser = { code: result.key, pin, profile: result.profile };
         }
         showScreen("lessons");
         renderLessonGrid();
       } catch (e) {
-        hint.textContent = "⚠️ เกิดข้อผิดพลาด ลองใหม่อีกครั้งนะ";
+        hint.textContent = "⚠️ เชื่อมต่อไม่สำเร็จ ลองใหม่อีกครั้งนะ";
         hint.classList.remove("is-hidden");
         startBtn.disabled = false;
       }
@@ -198,7 +207,7 @@ const App = (() => {
   function renderLessonGrid() {
     setMascot(document.getElementById("mascot-lessons-mini"), "idle");
     document.getElementById("account-bar-text").textContent = currentUser
-      ? `👋 ${currentUser.profile.nickname} · รหัส: ${currentUser.code}`
+      ? `👋 ${currentUser.profile.nickname} · รหัส: ${currentUser.pin}`
       : "";
 
     const grid = document.getElementById("lesson-grid");

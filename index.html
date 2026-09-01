@@ -46,24 +46,22 @@
     </div>
   </section>
 
-  <!-- ============ หน้า 2: เข้าสู่ระบบ (ชื่อเล่น + รหัส) ============ -->
+  <!-- ============ หน้า 2: เข้าสู่ระบบ (ชื่อเล่น + รหัสผ่าน 4 ตัว) ============ -->
   <section id="screen-onboarding" class="screen screen--onboarding" aria-label="เข้าสู่ระบบ">
     <div class="onboard-card">
       <div class="mascot-stage mascot-stage--small" id="mascot-onboarding"></div>
       <h2 class="onboard-title">มาเริ่มกันเลย!</h2>
 
+      <div class="onboard-tabs" role="tablist">
+        <button class="onboard-tab is-active" id="tab-new-code" type="button" role="tab" aria-selected="true">🆕 ผู้เล่นใหม่</button>
+        <button class="onboard-tab" id="tab-old-code" type="button" role="tab" aria-selected="false">🔄 ผู้เล่นเดิม</button>
+      </div>
+
       <label class="onboard-label" for="input-nickname">ชื่อเล่นของเรา</label>
       <input id="input-nickname" class="onboard-input" type="text" maxlength="20" placeholder="เช่น น้องพลอย" autocomplete="off" />
 
-      <div class="onboard-tabs" role="tablist">
-        <button class="onboard-tab is-active" id="tab-new-code" type="button" role="tab" aria-selected="true">สร้างรหัสใหม่</button>
-        <button class="onboard-tab" id="tab-old-code" type="button" role="tab" aria-selected="false">เข้ารหัสเดิม</button>
-      </div>
-
-      <div id="panel-old-code" class="onboard-panel is-hidden">
-        <label class="onboard-label" for="input-code">กรอกรหัสของเรา</label>
-        <input id="input-code" class="onboard-input onboard-input--code" type="text" maxlength="6" placeholder="เช่น AB12CD" autocomplete="off" />
-      </div>
+      <label class="onboard-label" for="input-code" id="label-code">สร้างรหัสผ่าน 4 ตัว (ตัวเลข)</label>
+      <input id="input-code" class="onboard-input onboard-input--code" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="เช่น 1234" autocomplete="off" />
 
       <p class="onboard-hint" id="onboard-hint">🔒 กรอกข้อมูลให้ครบก่อนนะ 67 รออยู่!</p>
 

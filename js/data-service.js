@@ -1,27 +1,29 @@
 /* =========================================================
    DataService — เก็บ Progress ของผู้เรียน
    -------------------------------------------------------
-   เก็บเฉพาะ: ชื่อเล่น (ไม่ใช่ชื่อจริง-นามสกุล), รหัสที่ระบบสร้างให้อัตโนมัติ,
-   ความคืบหน้าการปลดล็อกบท, จำนวนครั้งที่ทำ Post-test และคะแนนล่าสุด
-   ของแต่ละบทเท่านั้น (ไม่เก็บประวัติคะแนนเก่าทุกครั้ง)
+   เก็บเฉพาะ: ชื่อเล่น (ไม่ใช่ชื่อจริง-นามสกุล) + รหัสผ่าน 4 ตัวที่ผู้เล่น
+   ตั้งเอง (ไม่ใช่ระบบสุ่มให้ — ง่ายต่อการจำสำหรับเด็ก), ความคืบหน้าการ
+   ปลดล็อกบท, จำนวนครั้งที่ทำ Post-test และคะแนนล่าสุดของแต่ละบทเท่านั้น
+   (ไม่เก็บประวัติคะแนนเก่าทุกครั้ง)
+
+   การยืนยันตัวตน: ต้องกรอก "ชื่อเล่น" และ "รหัสผ่าน 4 ตัว" ตรงกันทุกตัว
+   กับตอนสร้างบัญชี — ระบบเก็บข้อมูลโดยใช้ชื่อ+รหัสรวมกันเป็น Key เดียว
+   (ผู้เล่นสองคนตั้งรหัสเดียวกันได้ ถ้าชื่อเล่นไม่ซ้ำกัน)
 
    ทำงาน 2 โหมดโดยอัตโนมัติ:
    - Cloud Mode  : เมื่อกรอก js/firebase-config.js ครบแล้ว ใช้ Firebase
                    Realtime Database (ผ่าน Anonymous Auth)
    - Local Mode  : ค่าเริ่มต้น (ยังไม่ได้กรอก Firebase config) ใช้
-                   localStorage ของเบราว์เซอร์เครื่องนี้แทน — ใช้งานได้
-                   ครบทุกฟีเจอร์ทันที เหมาะสำหรับทดสอบระบบ
+                   localStorage ของเบราว์เซอร์เครื่องนี้แทน
 
-   หมายเหตุด้านความปลอดภัย: ระบบรหัสแบบนี้ (ไม่มี Login ด้วยรหัสผ่านจริง)
-   ไม่สามารถยืนยันตัวตนผู้ใช้ได้ 100% — ใครก็ตามที่รู้/เดารหัสได้ ก็จะเข้าถึง
-   ข้อมูล Progress ของรหัสนั้นได้ (คล้ายรหัส PIN ห้องเกม) เหมาะกับข้อมูล
-   ระดับความเสี่ยงต่ำแบบนี้ (ไม่มีชื่อจริง ไม่มีข้อมูลอ่อนไหว) แต่ไม่ควรใช้
-   เก็บข้อมูลสำคัญกว่านี้โดยไม่ทำระบบยืนยันตัวตนที่รัดกุมกว่านี้
+   หมายเหตุด้านความปลอดภัย: ระบบรหัสแบบนี้ (ไม่มี Login ด้วยรหัสผ่านจริง
+   ที่เข้ารหัส) ไม่สามารถยืนยันตัวตนผู้ใช้ได้ 100% — ใครก็ตามที่รู้/เดา
+   ชื่อ+รหัสได้ ก็จะเข้าถึงข้อมูล Progress ของบัญชีนั้นได้ (คล้ายรหัส PIN
+   ห้องเกม) เหมาะกับข้อมูลระดับความเสี่ยงต่ำแบบนี้เท่านั้น
    ========================================================= */
 
 const DataService = (() => {
-  const CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"; // ตัด 0/O/1/I/L ที่สับสนง่ายออก
-  const LOCAL_KEY = "mathsite67_users_v1";
+  const LOCAL_KEY = "mathsite67_users_v2";
 
   const isCloudConfigured = () =>
     typeof FIREBASE_CONFIG !== "undefined" &&
@@ -32,17 +34,18 @@ const DataService = (() => {
   let cloudDb = null;
   let cloudReady = null;
 
-  function generateCode(length = 6) {
-    let code = "";
-    for (let i = 0; i < length; i++) {
-      code += CODE_ALPHABET[Math.floor(Math.random() * CODE_ALPHABET.length)];
-    }
-    return code;
+  /** แปลงชื่อเล่น+รหัส ให้เป็น Key เดียวที่ปลอดภัยสำหรับใช้เป็น path ใน Firebase
+   *  (ตัดอักขระที่ Firebase ห้ามใช้ใน key: . # $ [ ] /) */
+  function sanitizeNickname(nickname) {
+    return nickname.trim().replace(/[.#$\[\]/]/g, "").slice(0, 30);
+  }
+  function buildKey(nickname, pin) {
+    return `${sanitizeNickname(nickname)}__${pin.trim()}`;
   }
 
   function emptyProfile(nickname) {
     return {
-      nickname,
+      nickname: nickname.trim(),
       createdAt: Date.now(),
       unlockedUpTo: 1,
       lessons: {} // { [lessonId]: { attempts, latestFinalScore, passed } }
@@ -84,73 +87,59 @@ const DataService = (() => {
     return cloudReady;
   }
 
-  /* ---------------- API สาธารณะ (เหมือนกันทั้ง 2 โหมด) ---------------- */
-
-  async function createUser(nickname) {
-    const profile = emptyProfile(nickname);
-    let code = generateCode();
-
-    if (mode === "cloud") {
-      const { db, ref, get, set } = await ensureCloud();
-      // กันรหัสชนกัน (โอกาสน้อยมาก แต่เช็คไว้ให้ชัวร์)
-      let attempts = 0;
-      while (attempts < 5) {
-        const snap = await get(ref(db, `users/${code}`));
-        if (!snap.exists()) break;
-        code = generateCode();
-        attempts++;
-      }
-      await set(ref(db, `users/${code}`), profile);
-    } else {
-      const all = localReadAll();
-      while (all[code]) code = generateCode(); // กันรหัสชนกันในเครื่องเดียวกัน
-      all[code] = profile;
-      localWriteAll(all);
-    }
-    return { code, profile };
-  }
-
-  async function loadUser(code) {
-    if (!code) return null;
-    code = code.trim().toUpperCase();
-
+  /* ---------------- อ่าน/เขียนแบบ raw ตาม key (ใช้ภายในเท่านั้น) ---------------- */
+  async function rawGet(key) {
     if (mode === "cloud") {
       const { db, ref, get } = await ensureCloud();
-      const snap = await get(ref(db, `users/${code}`));
+      const snap = await get(ref(db, `users/${key}`));
       return snap.exists() ? snap.val() : null;
     }
     const all = localReadAll();
-    return all[code] || null;
+    return all[key] || null;
   }
 
-  async function saveLessonResult(code, lessonId, result) {
-    code = code.trim().toUpperCase();
-
+  async function rawSet(key, profile) {
     if (mode === "cloud") {
-      const { db, ref, get, set } = await ensureCloud();
-      const userRef = ref(db, `users/${code}`);
-      const snap = await get(userRef);
-      if (!snap.exists()) return null;
-      const profile = snap.val();
-      profile.lessons = profile.lessons || {};
-      profile.lessons[lessonId] = result;
-      if (result.passed && profile.unlockedUpTo === lessonId) {
-        profile.unlockedUpTo = lessonId + 1;
-      }
-      await set(userRef, profile);
-      return profile;
+      const { db, ref, set } = await ensureCloud();
+      await set(ref(db, `users/${key}`), profile);
+      return true;
     }
-
     const all = localReadAll();
-    const profile = all[code];
+    all[key] = profile;
+    return localWriteAll(all);
+  }
+
+  /* ---------------- API สาธารณะ ---------------- */
+
+  /** สร้างผู้เล่นใหม่ ด้วยชื่อเล่น + รหัสผ่าน 4 ตัวที่ผู้เล่นตั้งเอง
+   *  คืนค่า { key, profile } เมื่อสำเร็จ หรือ { error: "exists" } ถ้าชื่อ+รหัสนี้ถูกใช้แล้ว */
+  async function createUser(nickname, pin) {
+    const key = buildKey(nickname, pin);
+    const existing = await rawGet(key);
+    if (existing) return { error: "exists" };
+    const profile = emptyProfile(nickname);
+    await rawSet(key, profile);
+    return { key, profile };
+  }
+
+  /** โหลดผู้เล่นเดิม ต้องกรอกชื่อเล่น+รหัสผ่านตรงกับตอนสร้างทุกตัว
+   *  คืนค่า { key, profile } หรือ null ถ้าไม่พบ (ไม่บอกว่าผิดที่ชื่อหรือรหัส เพื่อความปลอดภัย) */
+  async function loadUser(nickname, pin) {
+    if (!nickname || !pin) return null;
+    const key = buildKey(nickname, pin);
+    const profile = await rawGet(key);
+    return profile ? { key, profile } : null;
+  }
+
+  async function saveLessonResult(key, lessonId, result) {
+    const profile = await rawGet(key);
     if (!profile) return null;
     profile.lessons = profile.lessons || {};
     profile.lessons[lessonId] = result;
     if (result.passed && profile.unlockedUpTo === lessonId) {
       profile.unlockedUpTo = lessonId + 1;
     }
-    all[code] = profile;
-    localWriteAll(all);
+    await rawSet(key, profile);
     return profile;
   }
 
@@ -158,5 +147,5 @@ const DataService = (() => {
     return mode;
   }
 
-  return { createUser, loadUser, saveLessonResult, getMode, generateCode };
+  return { createUser, loadUser, saveLessonResult, getMode };
 })();
