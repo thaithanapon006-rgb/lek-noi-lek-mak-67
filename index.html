@@ -46,17 +46,50 @@
     </div>
   </section>
 
-  <!-- ============ หน้า 2: รวมบทเรียน ============ -->
+  <!-- ============ หน้า 2: เข้าสู่ระบบ (ชื่อเล่น + รหัส) ============ -->
+  <section id="screen-onboarding" class="screen screen--onboarding" aria-label="เข้าสู่ระบบ">
+    <div class="onboard-card">
+      <div class="mascot-stage mascot-stage--small" id="mascot-onboarding"></div>
+      <h2 class="onboard-title">มาเริ่มกันเลย!</h2>
+
+      <label class="onboard-label" for="input-nickname">ชื่อเล่นของเรา</label>
+      <input id="input-nickname" class="onboard-input" type="text" maxlength="20" placeholder="เช่น น้องพลอย" autocomplete="off" />
+
+      <div class="onboard-tabs" role="tablist">
+        <button class="onboard-tab is-active" id="tab-new-code" type="button" role="tab" aria-selected="true">สร้างรหัสใหม่</button>
+        <button class="onboard-tab" id="tab-old-code" type="button" role="tab" aria-selected="false">เข้ารหัสเดิม</button>
+      </div>
+
+      <div id="panel-old-code" class="onboard-panel is-hidden">
+        <label class="onboard-label" for="input-code">กรอกรหัสของเรา</label>
+        <input id="input-code" class="onboard-input onboard-input--code" type="text" maxlength="6" placeholder="เช่น AB12CD" autocomplete="off" />
+      </div>
+
+      <p class="onboard-hint" id="onboard-hint">🔒 กรอกข้อมูลให้ครบก่อนนะ 67 รออยู่!</p>
+
+      <button id="btn-onboard-start" class="btn btn--primary btn--huge" disabled aria-disabled="true">
+        เริ่ม <span class="btn__icon">▶</span>
+      </button>
+
+      <p class="onboard-mode-note" id="onboard-mode-note"></p>
+    </div>
+  </section>
+
+  <!-- ============ หน้า 3: รวมบทเรียน ============ -->
   <section id="screen-lessons" class="screen screen--lessons" aria-label="เลือกบทเรียน">
     <header class="topbar">
       <button class="btn btn--round" id="btn-home" aria-label="กลับหน้าแรก">🏠</button>
       <h2 class="topbar__title">เลือกบทที่อยากเล่น</h2>
       <div class="mascot-mini" id="mascot-lessons-mini" aria-hidden="true"></div>
     </header>
+    <div class="account-bar" id="account-bar">
+      <span id="account-bar-text"></span>
+      <button id="btn-logout" class="account-bar__logout" type="button">ออกจากระบบ</button>
+    </div>
     <div id="lesson-grid" class="lesson-grid" role="list"></div>
   </section>
 
-  <!-- ============ หน้า 3: สื่อการสอน (สไลด์) ============ -->
+  <!-- ============ หน้า 3b: สื่อการสอน (สไลด์ — ระบบเดิม สำรองไว้) ============ -->
   <section id="screen-lesson" class="screen screen--lesson" aria-label="บทเรียน">
     <header class="topbar">
       <button class="btn btn--round" id="btn-back-to-lessons" aria-label="กลับไปเลือกบท">←</button>
@@ -112,7 +145,26 @@
     </div>
   </section>
 
-  <!-- ============ หน้า 4: มินิเกม ============ -->
+  <!-- ============ หน้า 4b: สรุปคะแนนก่อนเรียน (Pre-test) ============ -->
+  <section id="screen-pretest-result" class="screen screen--pretest-result" aria-label="สรุปคะแนนก่อนเรียน">
+    <div class="interstitial-card">
+      <div class="mascot-stage mascot-stage--small" id="mascot-pretest-result"></div>
+      <h2 class="interstitial-title" id="pretest-result-title">เก่งมาก! มาดูกันว่าเราจะเรียนรู้อะไรเพิ่มกันนะ</h2>
+      <p class="interstitial-score" id="pretest-result-score"></p>
+      <button id="btn-pretest-continue" class="btn btn--primary btn--huge">ไปดูวิดีโอกันเลย <span class="btn__icon">▶</span></button>
+    </div>
+  </section>
+
+  <!-- ============ หน้า 5b: ตรวจทานคำตอบใบงาน ============ -->
+  <section id="screen-review-check" class="screen screen--review-check" aria-label="ตรวจทานคำตอบ">
+    <header class="topbar">
+      <h2 class="topbar__title">มาตรวจคำตอบกันนะ</h2>
+    </header>
+    <div class="review-check-list" id="review-check-list"></div>
+    <button id="btn-review-continue" class="btn btn--primary btn--huge">ไปทำแบบทดสอบหลังเรียน <span class="btn__icon">▶</span></button>
+  </section>
+
+  <!-- ============ หน้า 4: มินิเกม / แบบทดสอบ (ใช้ซ้ำสำหรับ Pre-test, ใบงาน, Post-test) ============ -->
   <section id="screen-game" class="screen screen--game" aria-label="มินิเกม">
     <header class="topbar">
       <button class="btn btn--round" id="btn-back-to-lessons-2" aria-label="กลับไปเลือกบท">←</button>
@@ -136,6 +188,8 @@
         <div class="result-stats__row"><span>คะแนน</span><strong id="result-score">0</strong></div>
         <div class="result-stats__row"><span>ตอบถูก</span><strong id="result-correct">0</strong></div>
         <div class="result-stats__row"><span>ทั้งหมด</span><strong id="result-total">0</strong></div>
+        <div class="result-stats__row is-hidden" id="result-status-row"><span>สถานะ</span><strong id="result-status">-</strong></div>
+        <div class="result-stats__row is-hidden" id="result-attempts-row"><span>ทำแบบทดสอบหลังเรียนไปแล้ว</span><strong id="result-attempts">-</strong></div>
       </div>
       <div class="result-actions">
         <button id="btn-replay" class="btn btn--secondary btn--huge">เล่นอีกครั้ง 🔁</button>
@@ -151,6 +205,8 @@
 <script src="js/scoring.js"></script>
 <script src="js/games.js"></script>
 <script src="js/youtube.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/data-service.js"></script>
 <!-- js/mascot67.js: Mascot เวอร์ชัน Chibi (ปิดใช้งานชั่วคราว — กลับไปใช้ตัวละครแบบดั้งเดิมแล้ว) -->
 <script src="js/app.js"></script>
 </body>
