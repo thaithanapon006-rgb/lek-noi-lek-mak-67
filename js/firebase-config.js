@@ -1,21 +1,22 @@
-/* =========================================================
-   Firebase Config — กรอกค่าจากโปรเจกต์ Firebase ของคุณเอง
-   -------------------------------------------------------
-   วิธีหา: Firebase Console > โปรเจกต์ของคุณ > ⚙️ Project settings
-   > เลื่อนลงมาที่ "Your apps" > เลือกแอปแบบ Web (</>) หรือสร้างใหม่
-   > คัดลอกค่าจาก firebaseConfig มาแทนที่ด้านล่างนี้
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
 
-   ตราบใดที่ apiKey ยังเป็นค่า "YOUR_API_KEY" (ค่าเริ่มต้น) เว็บไซต์จะทำงาน
-   แบบ "Local Mode" อัตโนมัติ — เก็บข้อมูล Progress ไว้ใน localStorage ของ
-   เบราว์เซอร์เครื่องนี้เท่านั้น (ไม่ sync ข้ามอุปกรณ์ แต่ใช้งานได้ครบทุก
-   ฟีเจอร์ทันทีโดยไม่ต้องตั้งค่า Firebase ก่อน) เหมาะสำหรับทดสอบระบบ
-
-   เมื่อกรอกค่าจริงแล้ว ให้ตั้งค่า Realtime Database Security Rules ตามที่
-   แนะนำไว้ใน README.md (หัวข้อ "การตั้งค่า Firebase") ก่อนใช้งานจริงเสมอ
-   ========================================================= */
-const FIREBASE_CONFIG = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "YOUR_PROJECT_ID"
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyA20RQUwRmL_VTSmyV5qgRQgyd3734KXQg",
+  authDomain: "lek-noi-lek-mak-67.firebaseapp.com",
+  databaseURL: "https://lek-noi-lek-mak-67-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "lek-noi-lek-mak-67",
+  storageBucket: "lek-noi-lek-mak-67.firebasestorage.app",
+  messagingSenderId: "793303507658",
+  appId: "1:793303507658:web:429b9682ab971d642b0a33",
+  measurementId: "G-X7EM6X6641"
 };
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
